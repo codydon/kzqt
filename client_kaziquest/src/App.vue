@@ -1,30 +1,31 @@
 <template>
   <div>
-    <header>
-      <!-- Header content -->
-    </header>
-    <main>
-      <!-- Dashboard content -->
-      <div class="">
-        <!-- <AdminDash /> -->
-      </div>
-      <router-view></router-view>
-    </main>
-    <footer>
-      <!-- Footer content -->
-    </footer>
+    <!-- Only render adminDashboard component if verifyEmail link has not been clicked -->
+    <AdminDash v-if="!verifyEmailClicked" />
+    <!-- Only render verifyEmail component if verifyEmail link has been clicked -->
+    <router-view v-if="verifyEmailClicked" />
   </div>
 </template>
 
 <script>
+import { ref } from 'vue';
 import AdminDash from './components/AdminDash.vue';
 
 export default {
-  name: "App",
-  components:{AdminDash}
+  components: {
+    AdminDash,
+  },
+  setup() {
+    const verifyEmailClicked = ref(false);
+
+    // check if the route '/verify_email/:token' is being accessed
+    if (window.location.pathname.includes('/verify_email')) {
+      verifyEmailClicked.value = true;
+    }
+
+    return {
+      verifyEmailClicked,
+    };
+  },
 };
 </script>
-
-<style>
-/* CSS styles for the layout */
-</style>

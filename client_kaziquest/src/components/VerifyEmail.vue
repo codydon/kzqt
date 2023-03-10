@@ -1,72 +1,98 @@
 <template>
   <div>
-    <div v-if="loading">
-      <p>Loading...</p>
-    </div>
-    <div v-else>
-      <div v-if="exists">
-        <form @submit.prevent="submitForm">
-          <label for="password">Password:</label>
-          <input type="password" id="password" v-model="password" />
-          <label for="confirm-password">Confirm Password:</label>
-          <input
-            type="password"
-            id="confirm-password"
-            v-model="confirmPassword"
-          />
-          <button type="submit">Submit</button>
-        </form>
+    <div class="flex justify-center items-center h-screen">
+      <div v-if="loading" class="animate-pulse">
+        <p>Loading...</p>
       </div>
       <div v-else>
-        <p>Link does not exist. Contact the administrator</p>
+        <div v-if="exists">
+          <form @submit.prevent="submitForm" class="flex flex-col items-center">
+            <label for="password" class="mt-4">Password:</label>
+            <input
+              type="password"
+              id="password"
+              v-model="password"
+              class="p-2 border border-gray-300 rounded-lg mt-2 w-full"
+            />
+            <label for="confirm-password" class="mt-4">Confirm Password:</label>
+            <input
+              type="password"
+              id="confirm-password"
+              v-model="confirmPassword"
+              class="p-2 border border-gray-300 rounded-lg mt-2 w-full"
+            />
+
+            <button
+              type="submit"
+              class="bg-blue-500 text-white px-4 py-2 mt-4 rounded hover:bg-blue-600"
+            >
+              Submit
+            </button>
+          </form>
+        </div>
+        <div v-else>
+          <div v-if="error">
+            <p>Network error. Contact the administrator</p>
+          </div>
+          <div v-else>
+            <p>Link does not exist. Contact the administrator</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
-  
-  <script>
+
+<script>
 export default {
   name: "VerifyEmail",
   data() {
     return {
       id: null,
       exists: false,
+      error: false,
       loading: true,
       password: null,
       confirmPassword: null,
     };
   },
-//   created() {
-//     // Get the ID parameter from the route
-//     this.id = this.$route.params.id;
+  created() {
+    // Get the ID parameter from the route
+    this.id = this.$route.params.token;
 
-//     // Check if the ID exists in the backend
-//     this.checkIdExists();
-//   },
+    // Get the CSRF token from the HTML template
+
+    // Check if the ID exists in the backend
+    setTimeout(() => {
+      this.checkIdExists();
+    }, 2000);
+  },
   methods: {
     checkIdExists() {
-      // Make API call to check if the ID exists
-      // Replace the API endpoint and request body with your own backend API call
-      fetch("/api/verify_email/" + this.$route.params.token)
-        .then((response) => {
-          if (response.ok) {
-            return response.json();
-          } else {
-            throw new Error("Network response was not ok");
-          }
-        })
-        .then((data) => {
-          if (data.exists) {
-            this.exists = true;
-          } else {
-            this.exists = false;
-          }
-          this.loading = false;
-        })
-        .catch((error) => {
-          console.error("Error:", error);
-          this.loading = false;
-        });
+      try {
+        fetch(`${import.meta.env.VITE_SERVER_URL}/verify_email/${this.id}/`)
+          .then((response) => response.json())
+          .then((response) => {
+            if (response.resp === 1 ) {
+              this.exists = true;
+              this.loading = false;
+              console.log("YESSSSSSSSSSSSSSS")
+            } else {
+              this.exists = false;
+              this.loading = false;
+              console.log("NOOOOOOOOOOOO", response.resp)
+            }
+          })
+          .catch((error) => {
+            console.error("POST ERROR", error);
+            this.error = true;
+            this.loading = false;
+          });
+      } catch (error) {
+        console.error("POST ERROR", error);
+        this.error = true;
+        this.loading = false;
+      }
     },
     submitForm() {
       if (this.password === this.confirmPassword) {
@@ -80,4 +106,24 @@ export default {
   },
 };
 </script>
-  
+
+<style>
+.animate-pulse {
+  animation: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.95);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+</style> 

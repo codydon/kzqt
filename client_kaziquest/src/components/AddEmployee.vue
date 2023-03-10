@@ -110,7 +110,7 @@ export default {
       fetch(url, options)
         .then((response) => response.json())
         .then((data) => {
-          console.log("RESPONSE", data);
+          // console.log("RESPONSE", data);
           // Clear the form
           this.name = "";
           this.email = "";

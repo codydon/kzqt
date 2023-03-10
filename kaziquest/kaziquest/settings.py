@@ -137,15 +137,24 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 #     'http://localhost:5173/',  # Replace with your Vue app's domain
 # ]
 
+# ALLOWED_HOSTS=["*"]
+# CORS_ALLOWED_ORIGINS = [
+#     'http://127.0.0.1:5173',
+# ]
+
+
 # This should be changed once we put this in production.
 CORS_ORIGIN_ALLOW_ALL = True
 
 EMAIL_BACKEND = 'django_smtp_ssl.SSLEmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = 'dev45cody@gmail.com'
-EMAIL_HOST_PASSWORD = 'yrmmimwlpluawekc'
+EMAIL_HOST_USER = 'eplpower8@gmail.com'
+EMAIL_HOST_PASSWORD = 'jwfphulhvamxwvuq'
+# EMAIL_HOST_USER = 'dev45cody@gmail.com'
+# EMAIL_HOST_PASSWORD = 'yrmmimwlpluawekc'
 EMAIL_PORT = '465'
 
-APP_URL = 'http://localhost:5173'
+APP_URL = 'http://127.0.0.1:8000'
+F_URL = 'http://127.0.0.1:5173'
 
 

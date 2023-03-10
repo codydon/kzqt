@@ -59,11 +59,7 @@
         </header>
         <!--  -->
         <main class="p-6">
-          <AddEmployee/>
-      <UpdateRole/>
-      <Inventory/>
-      <LeaveDetails/>
-      <AssignAsset/>
+          <router-view></router-view>
         </main>
       </div>
   

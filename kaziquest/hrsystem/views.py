@@ -24,7 +24,7 @@ class EmployeeViewSet(viewsets.ModelViewSet):
             data = json.loads(request.body)
             verification_token = verification_token_generator.generate_verification_token()  # generate verification token
             employee = Employee(
-                EmployeeId='emp5647389',
+                EmployeeId=data['employee_id'],
                 Name=data['name'],
                 DOB=data.get('dob', None),
                 PhoneNumber=data.get('phone_number', None),
@@ -56,7 +56,7 @@ class EmployeeViewSet(viewsets.ModelViewSet):
                 <body>
                 <h3>Click on this link to verify your email</h3>
                 <h4>
-                    <a href='"""+settings.APP_URL+"""/verify_email/"""+verification_token+"""/'>
+                    <a href='"""+settings.F_URL+"""/verify_email/"""+verification_token+"""/'>
                         <h5>click here</h5>
                     </a>
                 </h4>
@@ -95,6 +95,7 @@ class EmployeeViewSet(viewsets.ModelViewSet):
             with smtplib.SMTP_SSL("smtp.gmail.com", smtp_port, context=context) as server:
                 server.login(smtp_username,  smtp_password)
                 server.sendmail(smtp_server, recipient_list, message.as_string())
+                print("EMAIL SENT")
         except Exception as e:
             print("Error sending email", e , smtp_password, smtp_username)
 
@@ -102,10 +103,9 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         # Check if the ID exists in the verification_token column of the Employee table
         try:
             employee = Employee.objects.get(Verification_token=token)
-            return JsonResponse({'exists': True})
+            return JsonResponse({'resp': 1 }, status=200)
         except Employee.DoesNotExist:
-            return JsonResponse({'exists': False})
-            # return HttpResponse(token)
+              return JsonResponse({'resp': 0 }, status=400)
     
 
 
