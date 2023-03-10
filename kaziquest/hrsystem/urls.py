@@ -11,6 +11,7 @@ urlpatterns = [
     path('create_employee/', EmployeeViewSet.as_view({'post': 'create'}), name='hr-detail'),
     path('d/', EmployeeViewSet.as_view({'post': 'dummy'}), name='hr-detail'),
     path('verify_email/<str:token>/', EmployeeViewSet.as_view({'get': 'verify_email'}), name='verify_email'),
+    path('user_pass/', EmployeeViewSet.as_view({'post': 'user_pass'}), name='user_pass'),
     # add a new route to retrieve a specific employee by ID
     path('hr/<str:pk>/', EmployeeViewSet.as_view({'get': 'retrieve'}), name='hr-detail'),
     # add a new route to update an employee by ID

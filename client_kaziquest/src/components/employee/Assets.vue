@@ -1,5 +1,6 @@
 <template>
-  apply leave
+  my assets 
+  <!-- make sure you get the redirected user -->
 </template>
 
 <script>

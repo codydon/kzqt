@@ -7,6 +7,14 @@
       <div v-else>
         <div v-if="exists">
           <form @submit.prevent="submitForm" class="flex flex-col items-center">
+            <input
+              type="hidden"
+              name="csrfmiddlewaretoken"
+              :value="csrfToken"
+            />
+            <h3 class="font-bold text-gray-800 text-base">
+              Enter a password to create your Kaziquest account
+            </h3>
             <label for="password" class="mt-4">Password:</label>
             <input
               type="password"
@@ -35,7 +43,7 @@
             <p>Network error. Contact the administrator</p>
           </div>
           <div v-else>
-            <p>Link does not exist. Contact the administrator</p>
+            <p>Link expired or is already used.Kindly contact the administrator</p>
           </div>
         </div>
       </div>
@@ -57,11 +65,8 @@ export default {
     };
   },
   created() {
-    // Get the ID parameter from the route
+    // Get the token parameter from the route
     this.id = this.$route.params.token;
-
-    // Get the CSRF token from the HTML template
-
     // Check if the ID exists in the backend
     setTimeout(() => {
       this.checkIdExists();
@@ -73,36 +78,67 @@ export default {
         fetch(`${import.meta.env.VITE_SERVER_URL}/verify_email/${this.id}/`)
           .then((response) => response.json())
           .then((response) => {
-            if (response.resp === 1 ) {
+            if (response.resp === 1) {
               this.exists = true;
               this.loading = false;
-              console.log("YESSSSSSSSSSSSSSS")
+              console.log("TOKEN FOUND");
             } else {
               this.exists = false;
               this.loading = false;
-              console.log("NOOOOOOOOOOOO", response.resp)
+              console.log("NO SUCH TOKEN", response.resp);
             }
           })
           .catch((error) => {
-            console.error("POST ERROR", error);
+            console.error("FETCH ERROR", error);
             this.error = true;
             this.loading = false;
           });
       } catch (error) {
-        console.error("POST ERROR", error);
+        console.error("CATCH ERROR", error);
         this.error = true;
         this.loading = false;
       }
     },
     submitForm() {
-      if (this.password === this.confirmPassword) {
-        // Handle form submission
-        // You can access the password input value with this.password
-        // and the confirm password input value with this.confirmPassword
-      } else {
-        alert("Passwords do not match");
-      }
-    },
+  if (this.password === this.confirmPassword) {
+    // Get the CSRF token from the HTML template
+    const csrfToken = document.querySelector(
+      'input[name="csrfmiddlewaretoken"]'
+    ).value;
+    const url = `${import.meta.env.VITE_SERVER_URL}/user_pass/`;
+    const data = {
+      pw: this.confirmPassword,
+      token: this.id,
+    };
+    const options = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken,
+      },
+      body: JSON.stringify(data),
+    };
+    // Make an HTTP request to the server to submit the form data
+    fetch(url, options)
+      .then((response) => response.json())
+      .then((response) => {
+        // Handle the server response
+        if (response.resp === 1) {
+          console.log("account created");
+          this.$router.push('/employee')
+        } else {
+          console.log("a/c creation failed", response);
+        }
+      })
+      .catch((error, response) => {
+        // Handle any errors that occur during the HTTP request
+        console.error("FETCH ERROR", response);
+      });
+  } else {
+    alert("Passwords do not match");
+  }
+},
+
   },
 };
 </script>

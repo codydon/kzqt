@@ -3,9 +3,11 @@ from .serializers import EmployeeSerializer
 from .models import Employee
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse,Http404
 import json
 from django.conf import settings
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.hashers import make_password
 
 from django.template import Context
 from django.core.mail import EmailMessage
@@ -107,17 +109,37 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         except Employee.DoesNotExist:
               return JsonResponse({'resp': 0 }, status=400)
     
+    def user_pass(self, request):
+        try:
+            if request.method == "POST":
+                data = json.loads(request.body)
+                token = data['token']
+                pw = data['pw']
+                #find the row with the token
+                employee = get_object_or_404(Employee, Verification_token=token)
+                #hash the password
+                h_pw = make_password(pw)
+                # Update the password if the token matches
+                if employee.Verification_token == token:
+                    employee.Password = h_pw
+                    employee.Role = 2
+                    employee.Verification_token = 'verified'
+                    employee.save()
 
-
-
-   
+                    return JsonResponse({'resp': 1, 'error': 'Invalid request method'})
     
+                else:
+                    return JsonResponse({'resp': 0}, status=500)
+            else:
+                return JsonResponse({'resp': 'bad method'}, status=405)
+        except Exception as e:
+            return JsonResponse({'resp': 'error'}, status=500)
+        
 
+    
 import hashlib
 import datetime
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
-
-
 class VerificationTokenGenerator(PasswordResetTokenGenerator):
     def _make_hash_value(self, timestamp):
         return hashlib.sha256(str(timestamp).encode('utf-8')).hexdigest()
