@@ -1,7 +1,7 @@
 from django.urls import include, path, re_path
 from rest_framework import routers
 from .views import EmployeeViewSet
-from . import views
+from .views import AssetsViewSet
 
 router = routers.DefaultRouter()
 router.register(r'hr', EmployeeViewSet)
@@ -9,15 +9,19 @@ router.register(r'hr', EmployeeViewSet)
 urlpatterns = [
     path('', include(router.urls)),
     path('create_employee/', EmployeeViewSet.as_view({'post': 'create'}), name='hr-detail'),
+    path('get_employees/', EmployeeViewSet.as_view({'get': 'get_employees'}), name='get_employees'),
     path('d/', EmployeeViewSet.as_view({'post': 'dummy'}), name='hr-detail'),
     path('verify_email/<str:token>/', EmployeeViewSet.as_view({'get': 'verify_email'}), name='verify_email'),
     path('user_pass/', EmployeeViewSet.as_view({'post': 'user_pass'}), name='user_pass'),
-    # add a new route to retrieve a specific employee by ID
     path('hr/<str:pk>/', EmployeeViewSet.as_view({'get': 'retrieve'}), name='hr-detail'),
-    # add a new route to update an employee by ID
     path('hr/<str:pk>/update/', EmployeeViewSet.as_view({'put': 'update'}), name='hr-update'),
-    # add a new route to delete an employee by ID
     path('hr/<str:pk>/delete/', EmployeeViewSet.as_view({'delete': 'destroy'}), name='hr-delete'),
+    # 
+    path('add_asset/', AssetsViewSet.as_view({'post': 'add_asset'}), name='add_asset'),
+    path('update_asset/', AssetsViewSet.as_view({'post': 'update_asset'}), name='update_asset'),
+    path('assign_asset/', AssetsViewSet.as_view({'post': 'assign_asset'}), name='assign_asset'),
+    path('get_assets/', AssetsViewSet.as_view({'get': 'get_assets'}), name='get_assets'),
+    path('d_asset/<str:a_id>', AssetsViewSet.as_view({'post', 'delete_asset'}), name='delete_asset'),
 
 ]
 

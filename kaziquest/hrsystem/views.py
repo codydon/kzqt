@@ -1,6 +1,4 @@
 from rest_framework import viewsets
-from .serializers import EmployeeSerializer
-from .models import Employee
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
 from django.http import JsonResponse, HttpResponse,Http404
@@ -12,6 +10,117 @@ from django.contrib.auth.hashers import make_password
 from django.template import Context
 from django.core.mail import EmailMessage
 
+from .serializers import EmployeeSerializer
+from .models import Employee
+from .serializers import AssetSerializer
+from .models import Assets
+
+
+
+class AssetsViewSet(viewsets.ModelViewSet):
+    queryset = Assets.objects.all().order_by('EmployeeId')
+    serializer_class = AssetSerializer
+    authentication_classes = [BasicAuthentication]
+    # permission_classes = [IsAuthenticated]
+
+    def add_asset(self, request):
+        if request.method == 'POST':
+            data = json.loads(request.body)
+            try:
+                
+
+                asset_name = data.get('name')
+                asset_id = data.get('id')
+                description = data.get('description')
+
+                # Create a new asset object with the employee object and save it to the database
+                asset = Assets(
+                    AssetName=asset_name,
+                    AssetId=asset_id,
+                    Description=description,
+                )
+                asset.save()
+
+                # Return a success response
+                return JsonResponse({'success': True})
+
+            except Exception as e:
+                # If there is an error, return an error response
+                return JsonResponse({'success': False, 'error': str(e)})
+
+    def get_assets(self, request):
+        if request.method == 'GET':
+            # Retrieve all assets from the database
+            assets = Assets.objects.all()
+            # Create a list to store serialized asset objects
+            serialized_assets = []
+            for asset in assets:
+                serialized_asset = {
+                    'employee_id': asset.EmployeeId,
+                    'asset_name': asset.AssetName,
+                    'asset_id': asset.AssetId,
+                    'description': asset.Description,
+                    'assigned_status': asset.Assigned_status,
+                }
+                serialized_assets.append(serialized_asset)
+            return JsonResponse({'success': True, 'assets': serialized_assets}, status=200)
+        else:
+            return JsonResponse({'success': False}, status=500)
+        
+
+
+    def delete_asset(request, a_id):
+        # Retrieve the asset object from the database using the provided ID
+        asset = get_object_or_404(Assets, AssetId=a_id)
+
+        if request.method == 'POST':
+            # Delete the asset object from the database
+            asset.delete()
+            # Return a success response
+            return JsonResponse({'message': 'Asset deleted successfully.'}, status=204)
+
+        # Return a bad request response if the request method is not POST
+        return JsonResponse({'message': 'Invalid request method.'}, status=400)
+
+
+        
+    def update_asset(self, request):
+        if request.method == 'POST':
+            data = json.loads(request.body)
+            asset_id= data['asset_id']
+            try:
+                asset = get_object_or_404(Assets, AssetId=asset_id)
+            except Assets.DoesNotExist:
+                return JsonResponse({'resp': 'Asset does not exist'})
+            
+            asset.AssetName = data['asset_name']
+            asset.Description = data['description']
+            asset.save()
+            return JsonResponse({'success': True }, status=200)
+        else:
+            return JsonResponse({'error': 'Invalid request method'}, status=405)
+        
+    def assign_asset(self, request):
+        try:
+            if request.method == 'POST':
+                data = json.loads(request.body)
+                emp_id= data['employee_id']
+                try:
+                    asset = get_object_or_404(Assets, EmployeeId__EmployeeId=emp_id)
+                except Assets.DoesNotExist:
+                    return JsonResponse({'resp': 'Asset does not exist'}, status=500)
+                except Http404:
+                    return JsonResponse({'resp': 'Asset does not exist'}, status=404)
+            
+                
+                asset.EmployeeId = emp_id
+                asset.save()
+                return JsonResponse({'success': True, 'data': data}, status=200)
+            else:
+                return JsonResponse({'error': 'Invalid request method'}, status=405)
+        except Exception as e:
+                return JsonResponse({'error': e}, status=500)
+
 
 
 
@@ -20,6 +129,25 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     serializer_class = EmployeeSerializer
     authentication_classes = [BasicAuthentication]
     # permission_classes = [IsAuthenticated]
+
+    def get_employees(self, request):
+        if request.method == 'GET':
+            # Retrieve all assets from the database
+            assets = Employee.objects.all()
+            # Create a list to store serialized asset objects
+            serialized_assets = []
+            for asset in assets:
+                serialized_asset = {
+                    'employee_id': asset.EmployeeId,
+                    'employee_name': asset.Name,
+                    # 'asset_id': asset.AssetId,
+                    # 'description': asset.Description,
+                    # 'assigned_status': asset.Assigned_status,
+                }
+                serialized_assets.append(serialized_asset)
+            return JsonResponse({'success': True, 'employees': serialized_assets}, status=200)
+        else:
+            return JsonResponse({'success': False}, status=500)
 
     def create(self, request):
         if request.method == 'POST':
@@ -122,7 +250,7 @@ class EmployeeViewSet(viewsets.ModelViewSet):
                 # Update the password if the token matches
                 if employee.Verification_token == token:
                     employee.Password = h_pw
-                    employee.Role = 2
+                    employee.Role = 'unassigned'
                     employee.Verification_token = 'verified'
                     employee.save()
 

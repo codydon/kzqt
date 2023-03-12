@@ -17,9 +17,9 @@ class Employee(models.Model):
     Verification_token = models.CharField(max_length=255 , editable=False)
 
 class Assets(models.Model):
-    EmployeeId = models.OneToOneField(Employee, on_delete=models.CASCADE, primary_key=True)
+    AssetId = models.CharField(max_length=255, primary_key=True)
     AssetName = models.CharField(max_length=255)
-    AssetId = models.CharField(max_length=255)
+    EmployeeId = models.OneToOneField(Employee, on_delete=models.CASCADE, null=True, editable=False)
     Description = models.CharField(max_length=255)
     Assigned_status = models.BooleanField(default=False)
 

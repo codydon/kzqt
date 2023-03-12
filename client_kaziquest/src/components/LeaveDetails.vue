@@ -21,21 +21,25 @@
         </tr>
       </thead>
       <tbody class="bg-white divide-y divide-gray-200">
-        <tr v-for="(row, index) in data" :key="index">
+        <tr v-for="(row, index) in leaveRequests" :key="index">
           <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-            {{ row.employeeId }}
+            {{ row.EmployeeId }}
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            {{ row.startdate }}
+            {{ row.StartDate }}
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            {{ row.enddate }}
+            {{ row.EndDate }}
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            {{ row.description }}
+            {{ row.Description }}
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            {{ row.status }}
+            <button v-if="row.Status === 'Pending'" @click="approveLeave(index)" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+              Approve
+            </button>
+            <span v-else-if="row.Status === 'Approved'" class="text-green-500 font-bold">{{ row.Status }}</span>
+            <span v-else class="text-red-500 font-bold">{{ row.Status }}</span>
           </td>
         </tr>
       </tbody>
@@ -45,11 +49,25 @@
 
 <script>
 export default {
-  props: {
-    data: {
-      type: Array,
-      default: () => [],
+  data() {
+    return {
+      leaveRequests: [],
+    }
+  },
+  mounted() {
+    this.fetchLeaveRequests();
+  },
+  methods: {
+    fetchLeaveRequests() {
+      fetch('/api/leave_requests')
+        .then(response => response.json())
+        .then(data => this.leaveRequests = data)
+        .catch(error => console.error(error));
     },
+    approveLeave(index) {
+      // Update the status of the leave request at the specified index
+      this.leaveRequests[index].Status = 'Approved';
+    }
   },
 };
 </script>

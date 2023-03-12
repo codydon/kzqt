@@ -17,9 +17,9 @@
               <option
                 v-for="(employee, index) in employees"
                 :key="index"
-                :value="employee.id"
+                :value="employee.EmployeeId"
               >
-                {{ employee.name }}
+                {{ employee.Name }}
               </option>
             </select>
             <div
@@ -54,71 +54,102 @@
                 <td class="border py-2 px-3">{{ asset.id }}</td>
                 <td class="border py-2 px-3">{{ asset.name }}</td>
                 <td class="border py-2 px-3">
-                  <button
-                    class="bg-blue-500 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded"
-                    @click="confirmAssign(asset.id)"
-                  >
-                    Assign
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+<input
+type="checkbox"
+:id="'asset-'+index"
+:value="asset.id"
+v-model="selectedAssets"
+@change="updateSelectedAsset()"
+/>
+<label :for="'asset-'+index" class="ml-2">{{ asset.name }}</label>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="flex justify-end">
+<button
+class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+:disabled="!selectedAssets.length"
+@click="assignAsset()"
+>
+Assign Asset
+</button>
+</div>
+</div>
+</div>
+
   </div>
 </template>
 <script>
-import Swal from 'sweetalert2'
-
 export default {
   data() {
     return {
+      employees: [],
+      assets: [],
       selectedEmployee: "",
-      employees: [
-        { id: 1, name: "John Doe" },
-        { id: 2, name: "Jane Doe" },
-        { id: 3, name: "Bob Smith" },
-      ],
-      assets: [
-        { id: 1, name: "Laptop" },
-        { id: 2, name: "Monitor" },
-        { id: 3, name: "Keyboard" },
-        { id: 4, name: "Mouse" },
-      ],
+      selectedAssets: [],
     };
   },
   methods: {
-    updateSelectedAsset() {
-      console.log("Selected employee:", this.selectedEmployee);
+    fetchEmployees() {
+      // fetch the list of employees from the server and set the data to the employees array
+      // use axios library to make a GET request to the server API endpoint '/employees'
+      // then set the response data to the employees array
+      axios
+        .get("/employees")
+        .then((response) => {
+          this.employees = response.data;
+        })
+        .catch((error) => {
+          console.log(error);
+        });
     },
-    // assignAsset(assetId) {
-    //   console.log(
-    //     `Assigned asset ${assetId} to employee ${this.selectedEmployee}`
-    //   );
-    // },
-    confirmAssign(assetId) {
-      Swal.fire({
-        title: 'Are you sure?',
-        text: `Do you want to assign asset ${assetId} to employee ${this.selectedEmployee}?`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, assign it!'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          console.log(`Assigned asset ${assetId} to employee ${this.selectedEmployee}`);
-        }
-      })
-    }
+    fetchAssets() {
+      // fetch the list of assets from the server and set the data to the assets array
+      // use axios library to make a GET request to the server API endpoint '/assets'
+      // then set the response data to the assets array
+      axios
+        .get("/assets")
+        .then((response) => {
+          this.assets = response.data;
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    },
+    updateSelectedAsset() {
+      // filter the selected assets based on the selected employee
+      // use axios library to make a GET request to the server API endpoint '/assets?employee_id=<selectedEmployee>'
+      // then set the response data to the assets array
+      axios
+        .get(`/assets?employee_id=${this.selectedEmployee}`)
+        .then((response) => {
+          this.assets = response.data;
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    },
+    assignAsset() {
+      // make a POST request to the server API endpoint '/assets/assign' with selectedEmployee and selectedAssets data
+      axios
+        .post("/assets/assign", {
+          employee_id: this.selectedEmployee,
+          asset_ids: this.selectedAssets,
+        })
+        .then((response) => {
+          console.log(response.data);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    },
+  },
+  mounted() {
+    // fetch the employees and assets data when the component is mounted
+    this.fetchEmployees();
+    this.fetchAssets();
   },
 };
 </script>
-
-
-
-
-
-  
