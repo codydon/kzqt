@@ -48,12 +48,6 @@
             </th>
             <th
               class="py-3 px-6 text-left cursor-pointer border"
-              @click="sortBy('assignedTo')"
-            >
-              emp Name
-            </th>
-            <th
-              class="py-3 px-6 text-left cursor-pointer border"
               @click="sortBy('description')"
             >
               Description
@@ -76,9 +70,6 @@
             <td class="py-3 px-6 text-left border">{{ asset.asset_id }}</td>
             <td class="py-3 px-6 text-left border">{{ asset.asset_name }}</td>
             <td class="py-3 px-6 text-left border">{{ asset.employee_id }}</td>
-            <td class="py-3 px-6 text-left border">
-              {{ asset.employee_name }}
-            </td>
             <td class="py-3 px-6 text-left border">{{ asset.description }}</td>
             <td class="py-3 px-6 text-left border">
               {{ asset.assigned_status }}
@@ -408,7 +399,6 @@ export default {
       this.showAssignModal = true;
     },
     getEmployees() {
-      console.warn("GETTING EMPLOYEES");
       fetch(`${import.meta.env.VITE_SERVER_URL}/get_employees/`)
         .then((response) => response.json())
         .then((response) => {
@@ -438,9 +428,10 @@ export default {
       };
 
       fetch(`${import.meta.env.VITE_SERVER_URL}/add_asset/`, requestOptions)
+      .then((response) => response.json())
         .then((response) => {
           console.log(response);
-          if ((response.success = true)) {
+          if ((response.success === true)) {
             this.getAssets();
             this.newAsset.name = "";
             this.newAsset.id = "";

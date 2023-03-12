@@ -2,6 +2,7 @@ from django.urls import include, path, re_path
 from rest_framework import routers
 from .views import EmployeeViewSet
 from .views import AssetsViewSet
+from .views import NotifyViewSet
 
 router = routers.DefaultRouter()
 router.register(r'hr', EmployeeViewSet)
@@ -10,6 +11,7 @@ urlpatterns = [
     path('', include(router.urls)),
     path('create_employee/', EmployeeViewSet.as_view({'post': 'create'}), name='hr-detail'),
     path('get_employees/', EmployeeViewSet.as_view({'get': 'get_employees'}), name='get_employees'),
+    path('emplogin/', EmployeeViewSet.as_view({'post': 'emplogin'}), name='emplogin'),
     path('d/', EmployeeViewSet.as_view({'post': 'dummy'}), name='hr-detail'),
     path('verify_email/<str:token>/', EmployeeViewSet.as_view({'get': 'verify_email'}), name='verify_email'),
     path('user_pass/', EmployeeViewSet.as_view({'post': 'user_pass'}), name='user_pass'),
@@ -22,6 +24,8 @@ urlpatterns = [
     path('assign_asset/', AssetsViewSet.as_view({'post': 'assign_asset'}), name='assign_asset'),
     path('get_assets/', AssetsViewSet.as_view({'get': 'get_assets'}), name='get_assets'),
     path('d_asset/<str:a_id>', AssetsViewSet.as_view({'post', 'delete_asset'}), name='delete_asset'),
+    #
+    path('notify/', NotifyViewSet.as_view()),
 
 ]
 

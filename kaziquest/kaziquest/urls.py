@@ -20,7 +20,5 @@ from hrsystem import urls as hrsystem_urls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('manager.urls')),
-    # path('api/', include(notes_urls)),
     path('api/', include(hrsystem_urls)),
 ]

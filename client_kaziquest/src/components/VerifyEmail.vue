@@ -125,6 +125,7 @@ export default {
         // Handle the server response
         if (response.resp === 1) {
           console.log("account created");
+          //
           this.$router.push('/employee')
         } else {
           console.log("a/c creation failed", response);

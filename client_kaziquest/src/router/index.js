@@ -4,7 +4,6 @@ import AddEmployee from '../components/AddEmployee.vue'
 import UpdateRole from '../components/UpdateRole.vue'
 import Inventory from "../components/Inventory.vue";
 import LeaveDetails from "../components/LeaveDetails.vue";
-import AssignAsset from "../components/AssignAsset.vue";
 import AdminDash from "../components/AdminDash.vue";
 import VerifyEmail from "../components/VerifyEmail.vue";
 import EmployeeDash from "../components/employee/EmployeeDash.vue";
@@ -16,7 +15,6 @@ import UpdateProfile from "../components/employee/UpdateProfile.vue";
 const routes = [
     // { path: '/', redirect: '/admin' },
     { path: '/addemployee',  name:'AddEmployee', component: AddEmployee  },
-    { path: '/assign_asset', name:'AssignAsset', component: AssignAsset },
     { path: '/updaterole', name:'UpdateRole', component: UpdateRole },
     { path: '/inventory', name:'Inventory', component: Inventory },
     { path: '/leavedetails', name:'LeaveDetails', component: LeaveDetails },

@@ -1,5 +1,49 @@
 <template>
-  <div class="flex h-screen overflow-hidden">
+  <div class="" v-if="!isLogin">
+    <div
+      class="flex flex-col items-center justify-center min-h-screen bg-gray-100"
+    >
+      <div class="bg-white rounded-lg shadow-md p-8">
+        <h3 v-show="loginstatus" class="text-red-500 bg-slate-200 p-2 text-center rounded">Wrong creddentials, try again</h3>
+        <h2 class="text-xl font-medium mb-4">Employee Login</h2>
+        <form @submit.prevent="empLogin()">
+          <div class="mb-4">
+            <label
+              class="block text-gray-700 font-medium mb-2"
+              for="employee-id"
+              >Employee ID</label
+            >
+            <input
+              v-model="employeeID"
+              class="border border-gray-400 p-2 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+              type="text"
+              id="employee-id"
+              name="employee-id"
+            />
+          </div>
+          <div class="mb-4">
+            <label class="block text-gray-700 font-medium mb-2" for="password"
+              >Password</label
+            >
+            <input
+              v-model="pw"
+              class="border border-gray-400 p-2 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+              type="password"
+              id="password"
+              name="password"
+            />
+          </div>
+          <button
+            class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600"
+            type="submit"
+          >
+            Login
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="flex h-screen overflow-hidden" v-else>
     <!-- Sidebar -->
     <div v-show="isOpen" class="bg-gray-800">
       <div class="text-white flex-none flex flex-col">
@@ -7,13 +51,22 @@
           <span class="text-xl font-semibold">Employee Dashboard</span>
         </div>
         <ul class="flex-1 overflow-y-auto">
-          <li @click="isShow = 1" class="px-4 py-2 hover:bg-gray-700 cursor-pointer">
+          <li
+            @click="isShow = 1"
+            class="px-4 py-2 hover:bg-gray-700 cursor-pointer"
+          >
             <p>Assets</p>
           </li>
-          <li @click="isShow = 2" class="px-4 py-2 hover:bg-gray-700 cursor-pointer">
+          <li
+            @click="isShow = 2"
+            class="px-4 py-2 hover:bg-gray-700 cursor-pointer"
+          >
             <p>Update Profile</p>
           </li>
-          <li @click="isShow = 3" class="px-4 py-2 hover:bg-gray-700 cursor-pointer">
+          <li
+            @click="isShow = 3"
+            class="px-4 py-2 hover:bg-gray-700 cursor-pointer"
+          >
             <p>Request Leave</p>
           </li>
         </ul>
@@ -55,7 +108,7 @@
       <main class="p-6">
         <Assets v-if="isShow == 1" />
         <UpdateProfile v-if="isShow == 2" />
-        <RequestLeave v-if="isShow == 3" /> 
+        <RequestLeave v-if="isShow == 3" />
       </main>
     </div>
   </div>
@@ -65,6 +118,8 @@
 import UpdateProfile from "./UpdateProfile.vue";
 import RequestLeave from "./RequestLeave.vue";
 import Assets from "./Assets.vue";
+import Swal from "sweetalert2";
+
 
 export default {
   data() {
@@ -72,6 +127,10 @@ export default {
       isOpen: true,
       isShow: 1,
       isAdmin: false,
+      isLogin: false,
+      employeeID: "",
+      pw: "",
+      loginstatus:false,
     };
   },
 
@@ -80,5 +139,55 @@ export default {
     RequestLeave,
     Assets,
   },
+  methods: {
+    empLogin() {
+      const requestOptions = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          pw:this.pw,
+          emp_id: this.employeeID
+        }),
+      };
+
+      fetch(`${import.meta.env.VITE_SERVER_URL}/emplogin/`, requestOptions)
+      .then((response) => response.json())
+        .then((response) => {
+          console.log(response);
+          if ((response.success === true)) {
+            this.isLogin = true
+            this.pnotify()
+            // Swal.fire({
+            //   icon: "success",
+            //   title: "Success",
+            //   text: "Asset added successfully",
+            // });
+          } else {
+            this.loginstatus = true
+          }
+        })
+        .catch((error) => {
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: error.message,
+          });
+        });
+    },
+    pnotify(){
+        fetch(`${import.meta.env.VITE_SERVER_URL}/notify/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username: this.employeeID
+          }),
+        })
+    },
+  },
+  
 };
 </script>
