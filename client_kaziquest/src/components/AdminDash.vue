@@ -10,9 +10,6 @@
           <li class="px-4 py-2 hover:bg-gray-700 cursor-pointer">
             <router-link to="/addemployee">Add Employee</router-link>
           </li>
-          <!-- <li class="px-4 py-2 hover:bg-gray-700 cursor-pointer">
-            <router-link to="/assign_asset">Assign Asset</router-link>
-          </li> -->
           <li class="px-4 py-2 hover:bg-gray-700 cursor-pointer">
             <router-link to="/updaterole">Employee Roles</router-link>
           </li>
