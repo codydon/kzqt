@@ -1,16 +1,11 @@
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.authentication import BasicAuthentication
-from rest_framework.permissions import IsAuthenticated
-from django.http import JsonResponse, HttpResponse,Http404
-import json
+from django.http import JsonResponse,Http404
+import json, jwt, datetime
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.hashers import make_password
-
-from django.template import Context
-from django.core.mail import EmailMessage
-
 from .serializers import EmployeeSerializer
 from .models import Employee
 from .serializers import AssetSerializer
@@ -18,6 +13,7 @@ from .models import Assets
 from .pusher import pusher_client
 from rest_framework.response import Response
 from django.contrib.auth.hashers import check_password
+
 
 
 class NotifyViewSet(APIView):
@@ -144,28 +140,6 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     authentication_classes = [BasicAuthentication]
     # permission_classes = [IsAuthenticated]
     
-    def emplogin(self, request):
-        if request.method == 'POST':
-            data = json.loads(request.body)
-            employee_id = data['emp_id']
-            password = data['pw']
-            
-            try:
-                employee = Employee.objects.get(EmployeeId=employee_id)
-            except Employee.DoesNotExist:
-                return JsonResponse({'resp': 'Invalid employee ID or password'}, status=404)
-            
-            if not employee.Email_verified:
-                return JsonResponse({'resp': 'Email not verified'}, status=404)
-            #login code
-            employee.Password = password
-            # decode password from db
-
-
-
-            
-            return JsonResponse({'resp': True }, status=200)
-
     def get_employees(self, request):
         if request.method == 'GET':
             # Retrieve all assets from the database
@@ -185,23 +159,17 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         else:
             return JsonResponse({'success': False}, status=500)
 
-    def create(self, request):
+    def create_employee(self, request):
         if request.method == 'POST':
             data = json.loads(request.body)
             verification_token = verification_token_generator.generate_verification_token()  # generate verification token
-            employee = Employee(
-                EmployeeId=data['employee_id'],
+            employee = Employee.objects.create(
                 Name=data['name'],
-                DOB=data.get('dob', None),
-                PhoneNumber=data.get('phone_number', None),
-                IDnumber=data.get('id_number', None),
-                KRAPIN=data.get('kra_pin', None),
-                Email=data['email'],
-                Role=data.get('role', None),
-                Password=data.get('password', None),
-                Email_verified=False,
+                email=data['email'],
                 Verification_token=verification_token
             )
+
+            
             
         #    send mail
             try:
@@ -269,9 +237,9 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         # Check if the ID exists in the verification_token column of the Employee table
         try:
             employee = Employee.objects.get(Verification_token=token)
-            return JsonResponse({'resp': 1 }, status=200)
         except Employee.DoesNotExist:
               return JsonResponse({'resp': 0 }, status=400)
+        return JsonResponse({'resp': 1 }, status=200)
         
     def user_pass(self, request):
         try:
@@ -281,24 +249,34 @@ class EmployeeViewSet(viewsets.ModelViewSet):
                 pw = data['pw']
                 #find the row with the token
                 employee = get_object_or_404(Employee, Verification_token=token)
-                #hash the password
-                h_pw = make_password(pw)
+                # hash the password
+                if employee.Verification_token == token and employee.Verification_token != 'verified':
+
+                    h_pw = make_password(pw)
+                    last_emp = Employee.objects.latest('EmployeeId')
+                    last_empId = last_emp.EmployeeId
+                    if(last_empId is None):
+                        empId = 'EMP_001'
+                    else:
+                        empId = "EMP_{:03d}".format(int(last_empId[4:]) + 1)
+
+                # return JsonResponse({'resp': empId}, status=200)
                 # Update the password if the token matches
-                if employee.Verification_token == token:
-                    employee.Password = h_pw
+                    employee.EmployeeId = empId
+                    employee.password = h_pw
                     employee.Role = 'unassigned'
                     employee.Verification_token = 'verified'
                     employee.Email_verified = True
                     employee.save()
 
-                    return JsonResponse({'resp': 1, 'error': 'Invalid request method'})
+                    return JsonResponse({'resp': 1, 'success': 'success'}, status=200)
     
                 else:
                     return JsonResponse({'resp': 0}, status=500)
             else:
-                return JsonResponse({'resp': 'bad method'}, status=405)
+                return JsonResponse({'error': 'bad method'}, status=405)
         except Exception as e:
-            return JsonResponse({'resp': 'error'}, status=500)
+            return JsonResponse({'exception error': str(e)}, status=500)
     
     def emplogin(self, request):
         if request.method == 'POST':
@@ -313,17 +291,31 @@ class EmployeeViewSet(viewsets.ModelViewSet):
             employee = get_object_or_404(Employee, EmployeeId=employee_id)
             
             # Check if the password is correct
-            if not check_password(password, employee.Password):
+            if not check_password(password, employee.password):
                 return JsonResponse({'error': 'Invalid employee ID or password'}, status=401)
             
             if not employee.Email_verified:
                 return JsonResponse({'error': 'Email not verified'}, status=401)
             
             # Set the employee's session data to indicate that they are logged in
-            request.session['employee_id'] = employee_id
+            payload = {
+                'id': employee.EmployeeId,
+                'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=1),
+                'iat': datetime.datetime.utcnow(),
+            }
+            token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256').decode('utf-8')
+
+            response  = Response()
+            response.set_cookie(key='jwt', value=token, httponly=True)
+            response.data = {
+                'jwt': token,
+                'success': True
+            }
+
+            return response 
             
             # Return a success response
-            return JsonResponse({'success': True})
+            # return JsonResponse({'success': True})
         else:
             # Return an error response for invalid request methods
             return JsonResponse({'error': 'Invalid request method'}, status=405)
@@ -333,7 +325,6 @@ class EmployeeViewSet(viewsets.ModelViewSet):
 
     
 import hashlib
-import datetime
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 class VerificationTokenGenerator(PasswordResetTokenGenerator):
     def _make_hash_value(self, timestamp):

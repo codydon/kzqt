@@ -9,7 +9,7 @@ router.register(r'hr', EmployeeViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('create_employee/', EmployeeViewSet.as_view({'post': 'create'}), name='hr-detail'),
+    path('create_employee/', EmployeeViewSet.as_view({'post': 'create_employee'}), name='hr-detail'),
     path('get_employees/', EmployeeViewSet.as_view({'get': 'get_employees'}), name='get_employees'),
     path('emplogin/', EmployeeViewSet.as_view({'post': 'emplogin'}), name='emplogin'),
     path('d/', EmployeeViewSet.as_view({'post': 'dummy'}), name='hr-detail'),

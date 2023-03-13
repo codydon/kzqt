@@ -1,18 +1,17 @@
 from rest_framework import serializers
 from .models import Employee, Assets, LeaveDays
 
-# class NoteSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Note
-#         fields = '__all__'
 
 class EmployeeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Employee
         fields = '__all__'
-        extra_kwargs = {
-            'password': {'write_only': True}
-        }
+
+        # fiels being used
+        # fields = ['EmployeeId', 'Name', 'DOB', 'PhoneNumber', 'IDnumber', 'KRAPIN', 'Role', 'Company', 'Email_verified', 'Verification_token', 'email', 'password']
+        # extra_kwargs = {
+        #     'password': {'write_only': True}
+        # }
     
     def create(self, validated_data):
         password = validated_data.pop('password', None)

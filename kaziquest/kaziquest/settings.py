@@ -158,4 +158,5 @@ F_URL = 'http://127.0.0.1:5173'
 
 AUTH_USER_MODEL = 'hrsystem.Employee'
 
+SECRET_KEY = '7&3o=ns!5!358)ihm5&8*n!l6)j6$5&7etl5m7&!^&r'
 

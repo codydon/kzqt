@@ -5,13 +5,13 @@ from django.contrib.auth.models import AbstractUser
 
 # class Employee(models.Model):
 class Employee(AbstractUser):
-    EmployeeId = models.CharField(max_length=255, primary_key=True)
+    id = models.AutoField(primary_key=True)
+    EmployeeId = models.CharField(max_length=255,null=True, unique=True)
     Name = models.CharField(max_length=255)
     DOB = models.DateField(null=True)
     PhoneNumber = models.IntegerField(null=True)
     IDnumber = models.IntegerField(null=True)
     KRAPIN = models.CharField(max_length=255, null=True)
-    # Email = models.EmailField(max_length=255, unique=True)
     Role = models.CharField(max_length=255, null=True)
     Company = models.CharField(max_length=255, null=True)
     Email_verified = models.BooleanField(default=False)
@@ -20,6 +20,11 @@ class Employee(AbstractUser):
 
     USERNAME_FIELD = 'EmployeeId'
     REQUIRED_FIELDS = []
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['email'], name='unique_email')
+        ]
 
 class Assets(models.Model):
     AssetId = models.CharField(max_length=255, primary_key=True)
