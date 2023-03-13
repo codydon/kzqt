@@ -78,7 +78,6 @@ export default {
       const data = await response.json();
       if (data.success === true) {
         this.assets = data.assets;
-        console.log("tdvfvekd", this.assets);
       }
     },
   },
