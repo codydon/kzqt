@@ -67,6 +67,7 @@ export default {
       isNameFocused: false,
       isEmailFocused: false,
       csrfToken: null,
+      showUserDropdown: false,
     };
   },
   methods: {

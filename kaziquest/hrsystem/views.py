@@ -13,6 +13,7 @@ from .models import Assets
 from .pusher import pusher_client
 from rest_framework.response import Response
 from django.contrib.auth.hashers import check_password
+from rest_framework.exceptions import AuthenticationFailed
 
 
 
@@ -277,7 +278,34 @@ class EmployeeViewSet(viewsets.ModelViewSet):
                 return JsonResponse({'error': 'bad method'}, status=405)
         except Exception as e:
             return JsonResponse({'exception error': str(e)}, status=500)
-    
+        
+
+
+    def getauth(self, request):
+        token = request.COOKIES.get('jwt')
+        if not token:
+            raise AuthenticationFailed('Unauthenticated')
+
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed('Unauthenticated')
+
+
+        user = Employee.objects.filter(EmployeeId=payload['id']).first()
+        serializer = EmployeeSerializer(user)
+
+        return Response(serializer.data)
+
+    def logout(self, request):
+        response = Response()
+        response.delete_cookie(key='jwt')
+        response.data = {
+            'jwt': None,
+          'success': True
+        }
+        return response
+
     def emplogin(self, request):
         if request.method == 'POST':
             data = json.loads(request.body)
