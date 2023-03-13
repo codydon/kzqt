@@ -1,20 +1,25 @@
 from django.db import models
+from django.contrib.auth.models import AbstractUser
 
-# class Note(models.Model):
-#     content = models.TextField()
+# Create your models here.
 
-class Employee(models.Model):
+# class Employee(models.Model):
+class Employee(AbstractUser):
     EmployeeId = models.CharField(max_length=255, primary_key=True)
     Name = models.CharField(max_length=255)
     DOB = models.DateField(null=True)
     PhoneNumber = models.IntegerField(null=True)
     IDnumber = models.IntegerField(null=True)
     KRAPIN = models.CharField(max_length=255, null=True)
-    Email = models.EmailField()
+    # Email = models.EmailField(max_length=255, unique=True)
     Role = models.CharField(max_length=255, null=True)
-    Password = models.CharField(max_length=255, null=True)
+    Company = models.CharField(max_length=255, null=True)
     Email_verified = models.BooleanField(default=False)
     Verification_token = models.CharField(max_length=255 , editable=False)
+    username = None
+
+    USERNAME_FIELD = 'EmployeeId'
+    REQUIRED_FIELDS = []
 
 class Assets(models.Model):
     AssetId = models.CharField(max_length=255, primary_key=True)

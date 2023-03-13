@@ -25,7 +25,6 @@ class NotifyViewSet(APIView):
     def post(self, request):
         pusher_client.trigger('notify', 'notification', {
             'username': request.data['username'],
-            # 'message': request.data['message'],
             })
         
         return Response([])
