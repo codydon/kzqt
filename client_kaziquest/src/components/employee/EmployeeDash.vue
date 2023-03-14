@@ -140,7 +140,6 @@ export default {
       })
         .then((response) => response.json())
         .then((response) => {
-          // console.log(response);
           if (response.success === true) {
             this.isLogin = true;
             this.employee = response.user;
