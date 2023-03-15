@@ -1,7 +1,7 @@
 <template>
   <div class="" v-if="!isLogin">
     <div
-      class="flex flex-col items-center justify-center min-h-screen bg-gray-100"
+      class="flex flex-col items-center justify-centerbg-gray-100"
     >
       <div class="bg-white rounded-lg shadow-md p-8">
         <h3
@@ -102,7 +102,7 @@
             </svg>
           </button>
           <div class="flex">
-            <div class="relative">
+            <div class="relative flex">
               <div class="text-gray-500 text-sm my-auto px-2">John Doe</div>
               <div
                 class="avatar bg-gray-100 text-center rounded-full py-2 px-4" @click="showUserDropdown = !showUserDropdown"
@@ -111,21 +111,20 @@
               </div>
               <div class="relative" v-show="showUserDropdown">
                 <div
-                  class="absolute right-0 mt-2 p-4 w-72 bg-slate-200 rounded-lg shadow-xl z-10 overflow-y-scroll"
+                  class="absolute right-0  mt-12 bg-slate-200 rounded-lg shadow-xl z-10 "
                 >
-                  <div
-                    class="text-center cursor-pointer mb-4 rounded-full p-2 text-sm text-red-400 bg-gray-300"
+                  <!-- <div
+                    class="text-right cursor-pointer mb-4 rounded-full text-sm text-red-400 hover:bg-gray-300"
                     @click="showUserDropdown = !showUserDropdown       
                     "
                   >
-                    close
-                  </div>
-                  <div
-                    
+                    X
+                  </div> -->
+                  <div               
                     class="text-center hover:bg-slate-200"
                   >
-                    <p class="hover:bg-slate-300 py-3 cursor-pointer">profile</p>
-                    <p class="hover:bg-slate-300 py-3 cursor-pointer" @click="logout">logout</p>
+                    <!-- <p class="hover:bg-slate-300 px-3 mb-2 rounded-full cursor-pointer">profile</p> -->
+                    <p class="hover:bg-slate-300 px-10 py-2 cursor-pointer rounded" @click="logout">logout</p>
                   </div>
                 </div>
               </div>
@@ -134,11 +133,11 @@
         </div>
       </header>
       <!--  -->
-      <main class="p-6">
+      <div class="p-6">
         <Assets v-if="isShow == 1" />
-        <UpdateProfile v-if="isShow == 2" />
+        <UpdateProfile v-if="isShow == 2" :employee="employee" />
         <RequestLeave v-if="isShow == 3" />
-      </main>
+      </div>
     </div>
   </div>
 </template>
@@ -148,6 +147,7 @@ import UpdateProfile from "./UpdateProfile.vue";
 import RequestLeave from "./RequestLeave.vue";
 import Assets from "./Assets.vue";
 import Swal from "sweetalert2";
+
 
 export default {
   data() {
@@ -161,6 +161,9 @@ export default {
       EmployeeId: "",
       loginstatus: false,
       showUserDropdown: false,
+      employee: {
+        EmployeeId: "",
+      }
     
     };
   },
@@ -238,6 +241,7 @@ export default {
         .then((response) => {
           console.log(response);
           if (response) {
+            this.showUserDropdown=false;
             this.isLogin = false;
             localStorage.clear();
           }

@@ -71,28 +71,13 @@ export default {
     };
   },
   methods: {
-    // generateUniqueString() {
-    //   const timestamp = Date.now().toString();
-    //   const random = Math.random().toString(36).substring(2, 12);
-    //   return "EMP_" + timestamp + random;
-    // },
-    // generateToken() {
-    //   const random = Math.random().toString(15).substring(2);
-    //   return random;
-    // },
-    // generateVerificationToken() {
-    //   return this.generateToken() + this.generateToken();
-    // },
     saveEmployee() {
       const employee = {
         name: this.name,
         email: this.email,
-        // employee_id: this.generateUniqueString(),
-        // verification_token: this.generateVerificationToken(),
       };
       console.log("Save employee", employee);
 
-      // Get the CSRF token from the HTML template
       const csrfToken = document.querySelector(
         'input[name="csrfmiddlewaretoken"]'
       ).value;
