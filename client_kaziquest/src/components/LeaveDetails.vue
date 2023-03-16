@@ -1,5 +1,6 @@
 <template>
   <div class="bg-white rounded-lg shadow overflow-x-auto">
+    <p class="p-4 font-bold underline">Leave Requests</p>
     <table class="min-w-full divide-y divide-gray-200">
       <thead class="bg-gray-50">
         <tr>
@@ -16,14 +17,17 @@
             Description
           </th>
           <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-            Status
+            APPROVED
+          </th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            ACTION
           </th>
         </tr>
       </thead>
       <tbody class="bg-white divide-y divide-gray-200">
         <tr v-for="(row, index) in leaveRequests" :key="index">
           <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-            {{ row.EmployeeId }}
+            {{ row.EmpId }}
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
             {{ row.StartDate }}
@@ -35,7 +39,7 @@
             {{ row.Description }}
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            <button v-if="row.Status === 'Pending'" @click="approveLeave(index)" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            <button v-if="row.Status === 'pending'" @click="approveLeave(index)" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
               Approve
             </button>
             <span v-else-if="row.Status === 'Approved'" class="text-green-500 font-bold">{{ row.Status }}</span>
@@ -54,14 +58,18 @@ export default {
       leaveRequests: [],
     }
   },
-  mounted() {
+  created() {
     this.fetchLeaveRequests();
   },
   methods: {
     fetchLeaveRequests() {
-      fetch('/api/leave_requests')
+      fetch(`${import.meta.env.VITE_SERVER_URL}/getRequests/`)
         .then(response => response.json())
-        .then(data => this.leaveRequests = data)
+        .then((response) => {
+          if(response.success === true){
+            this.leaveRequests = response.requests;
+          }
+        })
         .catch(error => console.error(error));
     },
     approveLeave(index) {
@@ -72,6 +80,3 @@ export default {
 };
 </script>
 
-<style>
-  /* Optional additional styling can be added here */
-</style>

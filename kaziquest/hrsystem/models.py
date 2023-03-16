@@ -6,7 +6,7 @@ from django.contrib.auth.models import AbstractUser
 # class Employee(models.Model):
 class Employee(AbstractUser):
     id = models.AutoField(primary_key=True)
-    EmployeeId = models.CharField(max_length=255,null=True, unique=True)
+    EmployeeId = models.CharField(max_length=255, null=True, unique=True)
     Name = models.CharField(max_length=255)
     DOB = models.DateField(null=True)
     PhoneNumber = models.CharField(max_length=255, null=True)
@@ -29,15 +29,18 @@ class Employee(AbstractUser):
 class Assets(models.Model):
     AssetId = models.CharField(max_length=255, primary_key=True)
     AssetName = models.CharField(max_length=255)
-    EmployeeId = models.OneToOneField(Employee, on_delete=models.CASCADE, null=True, editable=False)
+    EmpId = models.CharField(max_length=255 , null=True)
     Description = models.CharField(max_length=255)
     Assigned_status = models.BooleanField(default=False)
 
 class LeaveDays(models.Model):
-    EmployeeId = models.OneToOneField(Employee, on_delete=models.CASCADE, primary_key=True)
+    id = models.AutoField(primary_key=True)
     StartDate = models.DateField()
     EndDate = models.DateField()
     Description = models.CharField(max_length=255)
-    Status = models.CharField(max_length=255)
+    EmpId = models.CharField(max_length=255)
+    Status = models.CharField(max_length=255, default='pending')
+
+
 
 

@@ -28,7 +28,7 @@
       </div>
       <div class="mb-4">
         <label class="block text-gray-700 font-bold mb-2" for="description">
-          Description
+          Description/reason
         </label>
         <textarea
           class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -51,16 +51,46 @@
 </template>
 
 <script>
+import Swal  from 'sweetalert2';
+
 
 export default {
+  name: 'RequestLeave',
   data() {
     return {
       startDate: "",
       endDate: "",
       description: "",
+      employee:{},
     };
   },
+  created(){
+    this.getauth()
+  },
   methods: {
+    getauth() {
+      const authToken = localStorage.getItem("tkn");
+
+      fetch(`${import.meta.env.VITE_SERVER_URL}/getauth`, {
+        headers: { "content-type": "application/json" },
+        method: "POST",
+        body: JSON.stringify({
+          tkn: authToken,
+        }),
+      })
+        .then((response) => response.json())
+        .then((response) => {
+          // console.log(response);
+          if (response.success === true) {
+            this.isLogin = true;
+            this.employee = response.user;
+          }
+          else{
+            this.$router.push({ name: "Login" });
+          }
+        });
+    },
+
     submitLeaveRequest() {
       console.log("submitting form");
       fetch(`${import.meta.env.VITE_SERVER_URL}/leave_request`, {
@@ -73,16 +103,31 @@ export default {
           start_date: this.startDate,
           end_date: this.endDate,
           description: this.description,
+          eId: this.employee.EmployeeId
         })
         })
         .then((response) => response.json())
         .then((response) => {
-          console.log(response);
-          // Handle successful response, for example by displaying a success message
-        })
+          if(response.success === true){
+            this.startDate = "",
+            this.endDate = "",
+            this.description = "",
+            Swal.fire({
+              icon:'success',
+              title: 'Request sent successfully',
+              showConfirmButton: true,
+              timer: 1500
+            })
+          }
+          })
         .catch((error) => {
           console.error(error);
-          // Handle error response, for example by displaying an error message
+          Swal.fire({
+              icon:'error',
+              title: 'Request failed',
+              showConfirmButton: true,
+              timer: 1500
+            })
         });
     },
   },

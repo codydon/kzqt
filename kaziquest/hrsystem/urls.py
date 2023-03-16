@@ -30,6 +30,7 @@ urlpatterns = [
     path('d_asset/<str:a_id>', AssetsViewSet.as_view({'post', 'delete_asset'}), name='delete_asset'),
     #
     path('leave_request', LeaveDaysViewSet.as_view({'post': 'leave_request'}), name='leave_request'),
+    path('getRequests/', LeaveDaysViewSet.as_view({'get': 'getRequests'}), name='getRequests'),
     # 
     path('notify/', NotifyViewSet.as_view()),
 

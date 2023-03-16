@@ -164,6 +164,8 @@ export default {
     };
   },
   created() {
+    this.getauth()
+
     Pusher.logToConsole = true;
     const pusher = new Pusher(`${import.meta.env.VITE_PUSHER_APP_KEY}`, {
       cluster: "ap2",
@@ -181,6 +183,30 @@ export default {
     });
   },
   components: { Login, AddEmployee, UpdateRole, Inventory, LeaveDetails },
+  methods:{
+    getauth() {
+      const authToken = localStorage.getItem("tkn");
+
+      fetch(`${import.meta.env.VITE_SERVER_URL}/getauth`, {
+        headers: { "content-type": "application/json" },
+        method: "POST",
+        body: JSON.stringify({
+          tkn: authToken,
+        }),
+      })
+        .then((response) => response.json())
+        .then((response) => {
+          // console.log(response);
+          if (response.success === true && response.user.Role === 'admin') {
+            this.isLogin = true;
+            this.employee = response.user;
+          }
+          else{
+            this.$router.push({ name: "Login" });
+          }
+        });
+    },
+  }
 };
 </script>
 

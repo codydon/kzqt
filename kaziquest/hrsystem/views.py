@@ -26,7 +26,7 @@ class NotifyViewSet(APIView):
 
 
 class AssetsViewSet(viewsets.ModelViewSet):
-    queryset = Assets.objects.all().order_by('EmployeeId')
+    queryset = Assets.objects.all().order_by('AssetId')
     serializer_class = AssetSerializer
     authentication_classes = [BasicAuthentication]
     # permission_classes = [IsAuthenticated]
@@ -414,24 +414,44 @@ class EmployeeViewSet(viewsets.ModelViewSet):
             return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 class LeaveDaysViewSet(viewsets.ModelViewSet):
-    queryset = LeaveDays.objects.all().order_by('EmployeeId')
+    queryset = LeaveDays.objects.all().order_by('id')
     serializer_class = LeaveSerializer
     authentication_classes = [BasicAuthentication]
 
+    def getRequests(self, request):
+        try:
+            r =  LeaveDays.objects.all().order_by('id')
+            serializer = LeaveSerializer(r, many=True)
+            return JsonResponse({'success': True, 'requests':serializer.data}, status=200)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    
     def leave_request(self, request):
         if request.method == 'POST':
             data = json.loads(request.body)
-            # emp_id = data.get('emp_id')
-            # leave_type = data.get('leave_type')
-            # leave_date = data.get('leave_date')
-            # leave_time = data.get('leave_time')
-            # leave_reason = data.get('leave_reason')
+            emp_id = data['eId']
+            start = data['start_date']
+            end = data['end_date']
+            desc = data['description']
 
-            # if not emp_id or not leave_type or not leave_date or not leave_time or not leave_reason:
-            #     return JsonResponse({'error': 'Invalid employee ID, leave type, leave date, leave time, leave reason'}, status=400)
+            if not emp_id or not start or not end or not desc:
+                return JsonResponse({'error': 'fill all required fields'}, status=400)
 
-            # employee = get_object_or_404(Employee, EmployeeId=emp_id)
-            # leave = LeaveDays(EmployeeId=employee.EmployeeId, LeaveType=leave_type, LeaveDate=leave_date, LeaveTime=leave_time, LeaveReason=leave_reason)
+            # Retrieve the employee instance using the emp_id
+            try:
+                employee = Employee.objects.get(EmployeeId=emp_id)
+            except Employee.DoesNotExist:
+                return JsonResponse({'error': 'Invalid employee ID'}, status=400)
+
+            leave = LeaveDays.objects.create(
+                StartDate=start,
+                EndDate=end,
+                Description=desc,
+                EmpId=emp_id,
+                Status="pending"
+            )
+            leave.save()
+            return JsonResponse({"success": True}, status=200)
         
 
     

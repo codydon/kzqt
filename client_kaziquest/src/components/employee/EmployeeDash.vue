@@ -91,7 +91,7 @@
       <div class="p-6">
         <Assets v-if="isShow == 1" />
         <UpdateProfile v-if="isShow == 2" :employee="employee" />
-        <RequestLeave v-if="isShow == 3" />
+        <RequestLeave v-if="isShow == 3" :f="f" />
       </div>
     </div>
   </div>
@@ -104,6 +104,7 @@ import Assets from "./Assets.vue";
 import Swal from "sweetalert2";
 
 export default {
+  name:'EmployeeDash',
   data() {
     return {
       isOpen: true,
@@ -112,8 +113,8 @@ export default {
       isLogin: false,
       showUserDropdown: false,
       employee: {
-        // EmployeeId: "",
       },
+      f:1
     };
   },
 
