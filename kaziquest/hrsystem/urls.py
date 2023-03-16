@@ -3,6 +3,7 @@ from rest_framework import routers
 from .views import EmployeeViewSet
 from .views import AssetsViewSet
 from .views import NotifyViewSet
+from .views import LeaveDaysViewSet
 
 router = routers.DefaultRouter()
 router.register(r'hr', EmployeeViewSet)
@@ -11,10 +12,11 @@ urlpatterns = [
     path('', include(router.urls)),
     path('create_employee/', EmployeeViewSet.as_view({'post': 'create_employee'}), name='hr-detail'),
     path('get_employees/', EmployeeViewSet.as_view({'get': 'get_employees'}), name='get_employees'),
-    path('emplogin/', EmployeeViewSet.as_view({'post': 'emplogin'}), name='emplogin'),
+    path('emplogin', EmployeeViewSet.as_view({'post': 'emplogin'}), name='emplogin'),
     path('logout/', EmployeeViewSet.as_view({'post': 'logout'}), name='logout'),
+    path('reg_admin/', EmployeeViewSet.as_view({'post': 'reg_admin'}), name='reg_admin'),
     path('d/', EmployeeViewSet.as_view({'post': 'dummy'}), name='hr-detail'),
-    path('getauth/', EmployeeViewSet.as_view({'get': 'getauth'}), name='getauth'),
+    path('getauth', EmployeeViewSet.as_view({'post': 'getauth_user'}), name='getauth'),
     path('verify_email/<str:token>/', EmployeeViewSet.as_view({'get': 'verify_email'}), name='verify_email'),
     path('user_pass/', EmployeeViewSet.as_view({'post': 'user_pass'}), name='user_pass'),
     path('hr/<str:pk>/', EmployeeViewSet.as_view({'get': 'retrieve'}), name='hr-detail'),
@@ -27,6 +29,8 @@ urlpatterns = [
     path('get_assets/', AssetsViewSet.as_view({'get': 'get_assets'}), name='get_assets'),
     path('d_asset/<str:a_id>', AssetsViewSet.as_view({'post', 'delete_asset'}), name='delete_asset'),
     #
+    path('leave_request', LeaveDaysViewSet.as_view({'post': 'leave_request'}), name='leave_request'),
+    # 
     path('notify/', NotifyViewSet.as_view()),
 
 ]

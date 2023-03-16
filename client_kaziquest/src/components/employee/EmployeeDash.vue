@@ -1,54 +1,5 @@
 <template>
-  <div class="" v-if="!isLogin">
-    <div
-      class="flex flex-col items-center justify-centerbg-gray-100"
-    >
-      <div class="bg-white rounded-lg shadow-md p-8">
-        <h3
-          v-show="loginstatus"
-          class="text-red-500 bg-slate-200 p-2 text-center rounded"
-        >
-          Wrong creddentials, try again
-        </h3>
-        <h2 class="text-xl font-medium mb-4">Employee Login</h2>
-        <form @submit.prevent="empLogin()">
-          <div class="mb-4">
-            <label
-              class="block text-gray-700 font-medium mb-2"
-              for="employee-id"
-              >Employee ID</label
-            >
-            <input
-              v-model="employeeID"
-              class="border border-gray-400 p-2 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-              type="text"
-              id="employee-id"
-              name="employee-id"
-            />
-          </div>
-          <div class="mb-4">
-            <label class="block text-gray-700 font-medium mb-2" for="password"
-              >Password</label
-            >
-            <input
-              v-model="pw"
-              class="border border-gray-400 p-2 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-              type="password"
-              id="password"
-              name="password"
-            />
-          </div>
-          <button
-            class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600"
-            type="submit"
-          >
-            Login
-          </button>
-        </form>
-      </div>
-    </div>
-  </div>
-  <div class="flex h-screen overflow-hidden" v-else>
+  <div class="flex h-screen overflow-hidden">
     <!-- Sidebar -->
     <div v-show="isOpen" class="bg-gray-800">
       <div class="text-white flex-none flex flex-col">
@@ -103,15 +54,16 @@
           </button>
           <div class="flex">
             <div class="relative flex">
-              <div class="text-gray-500 text-sm my-auto px-2">John Doe</div>
+              <div class="text-gray-500 text-sm my-auto px-2"> {{ employee.EmployeeId }}</div>
               <div
-                class="avatar bg-gray-100 text-center rounded-full py-2 px-4" @click="showUserDropdown = !showUserDropdown"
+                class="avatar bg-gray-100 text-center rounded-full py-2 px-4"
+                @click="showUserDropdown = !showUserDropdown"
               >
-                J
+                {{ employee.Name[0] }}
               </div>
               <div class="relative" v-show="showUserDropdown">
                 <div
-                  class="absolute right-0  mt-12 bg-slate-200 rounded-lg shadow-xl z-10 "
+                  class="absolute right-0 mt-12 bg-slate-200 rounded-lg shadow-xl z-10"
                 >
                   <!-- <div
                     class="text-right cursor-pointer mb-4 rounded-full text-sm text-red-400 hover:bg-gray-300"
@@ -120,11 +72,14 @@
                   >
                     X
                   </div> -->
-                  <div               
-                    class="text-center hover:bg-slate-200"
-                  >
+                  <div class="text-center hover:bg-slate-200">
                     <!-- <p class="hover:bg-slate-300 px-3 mb-2 rounded-full cursor-pointer">profile</p> -->
-                    <p class="hover:bg-slate-300 px-10 py-2 cursor-pointer rounded" @click="logout">logout</p>
+                    <p
+                      class="hover:bg-slate-300 px-10 py-2 cursor-pointer rounded"
+                      @click="logout"
+                    >
+                      logout
+                    </p>
                   </div>
                 </div>
               </div>
@@ -148,7 +103,6 @@ import RequestLeave from "./RequestLeave.vue";
 import Assets from "./Assets.vue";
 import Swal from "sweetalert2";
 
-
 export default {
   data() {
     return {
@@ -156,15 +110,10 @@ export default {
       isShow: 1,
       isAdmin: false,
       isLogin: false,
-      employeeID: "",
-      pw: "",
-      EmployeeId: "",
-      loginstatus: false,
       showUserDropdown: false,
       employee: {
-        EmployeeId: "",
-      }
-    
+        // EmployeeId: "",
+      },
     };
   },
 
@@ -173,60 +122,34 @@ export default {
     RequestLeave,
     Assets,
   },
-  mounted() {
+  mounted() {},
+  created() {
     this.getauth();
   },
   methods: {
     getauth() {
-      const authToken = localStorage.getItem("auth");
-      if (authToken) {
-        this.isLogin = true;
-      } else {
-        this.isLogin = false;
-      }
+      const authToken = localStorage.getItem("tkn");
 
       fetch(`${import.meta.env.VITE_SERVER_URL}/getauth`, {
         headers: { "content-type": "application/json" },
-        credentials: "include",
+        method: "POST",
+        body: JSON.stringify({
+          tkn: authToken,
+        }),
       })
         .then((response) => response.json())
         .then((response) => {
-          this.EmployeeId = response.EmployeeId;
-        });
-    },
-    empLogin() {
-      const requestOptions = {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          pw: this.pw,
-          emp_id: this.employeeID,
-        }),
-      };
-
-      fetch(`${import.meta.env.VITE_SERVER_URL}/emplogin/`, requestOptions)
-        .then((response) => response.json())
-        .then((response) => {
-          console.log(response);
+          // console.log(response);
           if (response.success === true) {
             this.isLogin = true;
-            this.pnotify();
-            localStorage.setItem("auth", response.jwt);
-          } else {
-            this.loginstatus = true;
+            this.employee = response.user;
           }
-        })
-        .catch((error) => {
-          Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: error.message,
-          });
+          else{
+            this.$router.push({ name: "Login" });
+          }
         });
     },
+
     logout() {
       const requestOptions = {
         method: "POST",
@@ -235,15 +158,15 @@ export default {
         },
         credentials: "include",
       };
-
       fetch(`${import.meta.env.VITE_SERVER_URL}/logout/`, requestOptions)
         .then((response) => response.json())
         .then((response) => {
           console.log(response);
           if (response) {
-            this.showUserDropdown=false;
+            this.showUserDropdown = false;
             this.isLogin = false;
             localStorage.clear();
+            this.$router.push({ name: "Login" });
           }
         })
         .catch((error) => {
@@ -253,17 +176,6 @@ export default {
             text: error.message,
           });
         });
-    },
-    pnotify() {
-      fetch(`${import.meta.env.VITE_SERVER_URL}/notify/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username: this.employeeID,
-        }),
-      });
     },
   },
 };

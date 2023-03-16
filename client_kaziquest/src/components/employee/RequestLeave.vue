@@ -1,7 +1,7 @@
 <template>
   <div class="p-8">
     <h1 class="text-2xl font-bold mb-4">Leave Request</h1>
-    <form @submit.prevent="submitForm">
+    <form @submit.prevent="submitLeaveRequest">
       <div class="mb-4">
         <label class="block text-gray-700 font-bold mb-2" for="start-date">
           Start Date
@@ -51,6 +51,7 @@
 </template>
 
 <script>
+
 export default {
   data() {
     return {
@@ -60,18 +61,23 @@ export default {
     };
   },
   methods: {
-    submitForm() {
-      // Submit form data to the server and handle response
-      // You can use Axios or Fetch to make API requests
-      // For example:
-      axios
-        .post("/api/leave-request", {
+    submitLeaveRequest() {
+      console.log("submitting form");
+      fetch(`${import.meta.env.VITE_SERVER_URL}/leave_request`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          // 'include-credentials': 'true',
+        },
+        body: JSON.stringify({
           start_date: this.startDate,
           end_date: this.endDate,
           description: this.description,
         })
+        })
+        .then((response) => response.json())
         .then((response) => {
-          console.log(response.data);
+          console.log(response);
           // Handle successful response, for example by displaying a success message
         })
         .catch((error) => {

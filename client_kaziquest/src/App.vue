@@ -1,14 +1,9 @@
 <template>
-  <router-view>
-    <!-- Only render adminDashboard component if the current route is '/admin' -->
     <AdminDash v-if="$route.path === '/admin'" />
-    <!-- Only render verifyEmail component if verifyEmail link has been clicked -->
     <VerifyEmail v-if="verifyEmailClicked === 1" />
-    <!-- Only render employeeDashboard component if the current route is '/employee' -->
     <EmployeeDash v-if="$route.path === '/employee'" />
-    <!-- Only render Register component if the current route is '/register' -->
     <Register v-if="$route.path === '/register'" />
-  </router-view>
+    <router-view></router-view>
 </template>
 
 <script>

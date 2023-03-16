@@ -6,10 +6,8 @@ import json, jwt, datetime
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.hashers import make_password
-from .serializers import EmployeeSerializer
-from .models import Employee
-from .serializers import AssetSerializer
-from .models import Assets
+from .models import Employee, Assets, LeaveDays
+from .serializers import AssetSerializer, EmployeeSerializer, LeaveSerializer
 from .pusher import pusher_client
 from rest_framework.response import Response
 from django.contrib.auth.hashers import check_password
@@ -208,6 +206,58 @@ class EmployeeViewSet(viewsets.ModelViewSet):
 
         return JsonResponse({'success': False, 'error': 'Invalid request method'})
     
+    def reg_admin(self, request):
+        if request.method == 'POST':
+            data = json.loads(request.body)
+            verification_token = verification_token_generator.generate_verification_token()  # generate verification token
+            employee = Employee.objects.create(
+                Name=data['name'],
+                email=data['email'],
+                Verification_token=verification_token,
+                Role='admin',
+                Company=data['company'],
+                PhoneNumber=data['phone'],
+
+            )
+
+            
+            
+        #    send mail
+            try:
+                subject = "Kaziquest Verification Link"
+                content = """
+                <html>
+                <head>
+                <style>
+                a {
+                    color: #008080;
+                    font-size: 30px;
+                }
+                p {
+                    color: black;
+                }
+                </style>
+                </head>
+                <body>
+                <h3>Click on this link to verify your email</h3>
+                <h4>
+                    <a href='"""+settings.F_URL+"""/verify_email/"""+verification_token+"""/'>
+                        <h5>click here</h5>
+                    </a>
+                </h4>
+                </body>
+                </html>
+                """
+                self.send_email(subject, content,  data["email"])
+            except Exception as e:
+                return JsonResponse({'error': e})
+            
+            employee.save()
+
+            return JsonResponse({'success': True}, status=200)
+
+        return JsonResponse({'success': False, 'error': 'Invalid request method'})
+    
     def send_email(self, subject, content , recipient_list):
         smtp_server = settings.EMAIL_HOST
         smtp_port = settings.EMAIL_PORT
@@ -236,6 +286,7 @@ class EmployeeViewSet(viewsets.ModelViewSet):
 
     def verify_email(self, request, token):
         # Check if the ID exists in the verification_token column of the Employee table
+        print(token)
         try:
             employee = Employee.objects.get(Verification_token=token)
         except Employee.DoesNotExist:
@@ -252,20 +303,29 @@ class EmployeeViewSet(viewsets.ModelViewSet):
                 employee = get_object_or_404(Employee, Verification_token=token)
                 # hash the password
                 if employee.Verification_token == token and employee.Verification_token != 'verified':
-
-                    h_pw = make_password(pw)
-                    last_emp = Employee.objects.latest('EmployeeId')
-                    last_empId = last_emp.EmployeeId
-                    if(last_empId is None):
-                        empId = 'EMP_001'
+                    if employee.Role == 'admin':
+                        h_pw = make_password(pw)
+                        last_emp = Employee.objects.latest('EmployeeId')
+                        last_empId = last_emp.EmployeeId
+                        if(last_empId is None):
+                            empId = 'ADM_001'
+                        else:
+                            empId = "ADM_{:03d}".format(int(last_empId[4:]) + 1)
+                        employee.Role = 'admin'
                     else:
-                        empId = "EMP_{:03d}".format(int(last_empId[4:]) + 1)
+                        h_pw = make_password(pw)
+                        last_emp = Employee.objects.latest('EmployeeId')
+                        last_empId = last_emp.EmployeeId
+                        if(last_empId is None):
+                            empId = 'EMP_001'
+                        else:
+                            empId = "EMP_{:03d}".format(int(last_empId[4:]) + 1)
+                        employee.Role = 'unassigned'
 
                 # return JsonResponse({'resp': empId}, status=200)
                 # Update the password if the token matches
                     employee.EmployeeId = empId
                     employee.password = h_pw
-                    employee.Role = 'unassigned'
                     employee.Verification_token = 'verified'
                     employee.Email_verified = True
                     employee.save()
@@ -281,21 +341,24 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         
 
 
-    def getauth(self, request):
-        token = request.COOKIES.get('jwt')
-        if not token:
-            raise AuthenticationFailed('Unauthenticated')
+    def getauth_user(self, request):
+        if request.method == 'POST':
+            data = json.loads(request.body)
+            token = data['tkn']
+            # token = request.COOKIES.get('jwt')
+            if not token:
+                return JsonResponse({'exception error': 'yyyy'}, status=500)
 
-        try:
-            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
-        except jwt.ExpiredSignatureError:
-            raise AuthenticationFailed('Unauthenticated')
+            try:
+                payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            except jwt.ExpiredSignatureError:
+                return JsonResponse({'exception error2': 'yyyy'}, status=500)
 
+            user = Employee.objects.filter(EmployeeId=payload['id']).first()
+            serializer = EmployeeSerializer(user)
 
-        user = Employee.objects.filter(EmployeeId=payload['id']).first()
-        serializer = EmployeeSerializer(user)
-
-        return Response(serializer.data)
+            return JsonResponse({"success": True,  "user":serializer.data})
+            # return JsonResponse({"success": tkn})
 
     def logout(self, request):
         response = Response()
@@ -305,7 +368,7 @@ class EmployeeViewSet(viewsets.ModelViewSet):
           'success': True
         }
         return response
-
+    
     def emplogin(self, request):
         if request.method == 'POST':
             data = json.loads(request.body)
@@ -328,7 +391,7 @@ class EmployeeViewSet(viewsets.ModelViewSet):
             # Set the employee's session data to indicate that they are logged in
             payload = {
                 'id': employee.EmployeeId,
-                'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=1),
+                'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=120),
                 'iat': datetime.datetime.utcnow(),
             }
             token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256').decode('utf-8')
@@ -337,7 +400,9 @@ class EmployeeViewSet(viewsets.ModelViewSet):
             response.set_cookie(key='jwt', value=token, httponly=True)
             response.data = {
                 'jwt': token,
-                'success': True
+                'success': True,
+                'id': employee.EmployeeId,
+                'role': employee.Role,
             }
 
             return response 
@@ -348,7 +413,25 @@ class EmployeeViewSet(viewsets.ModelViewSet):
             # Return an error response for invalid request methods
             return JsonResponse({'error': 'Invalid request method'}, status=405)
 
+class LeaveDaysViewSet(viewsets.ModelViewSet):
+    queryset = LeaveDays.objects.all().order_by('EmployeeId')
+    serializer_class = LeaveSerializer
+    authentication_classes = [BasicAuthentication]
 
+    def leave_request(self, request):
+        if request.method == 'POST':
+            data = json.loads(request.body)
+            # emp_id = data.get('emp_id')
+            # leave_type = data.get('leave_type')
+            # leave_date = data.get('leave_date')
+            # leave_time = data.get('leave_time')
+            # leave_reason = data.get('leave_reason')
+
+            # if not emp_id or not leave_type or not leave_date or not leave_time or not leave_reason:
+            #     return JsonResponse({'error': 'Invalid employee ID, leave type, leave date, leave time, leave reason'}, status=400)
+
+            # employee = get_object_or_404(Employee, EmployeeId=emp_id)
+            # leave = LeaveDays(EmployeeId=employee.EmployeeId, LeaveType=leave_type, LeaveDate=leave_date, LeaveTime=leave_time, LeaveReason=leave_reason)
         
 
     

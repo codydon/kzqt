@@ -9,7 +9,7 @@ class Employee(AbstractUser):
     EmployeeId = models.CharField(max_length=255,null=True, unique=True)
     Name = models.CharField(max_length=255)
     DOB = models.DateField(null=True)
-    PhoneNumber = models.IntegerField(null=True)
+    PhoneNumber = models.CharField(max_length=255, null=True)
     IDnumber = models.IntegerField(null=True)
     KRAPIN = models.CharField(max_length=255, null=True)
     Role = models.CharField(max_length=255, null=True)

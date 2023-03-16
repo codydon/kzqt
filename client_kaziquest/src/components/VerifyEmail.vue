@@ -7,12 +7,12 @@
       <div v-else>
         <div v-if="exists">
           <form @submit.prevent="submitForm" class="flex flex-col items-center">
-            <input
+            <!-- <input
               type="hidden"
               name="csrfmiddlewaretoken"
               :value="csrfToken"
-            />
-            <h3 class="font-bold text-gray-800 text-base">
+            /> --->
+       <h3 class="font-bold text-gray-800 text-base"> 
               Enter a password to create your Kaziquest account
             </h3>
             <label for="password" class="mt-4">Password:</label>
@@ -64,13 +64,15 @@ export default {
       confirmPassword: null,
     };
   },
-  created() {
+  mounted() {
+    console.log(this.$route.params)
     // Get the token parameter from the route
-    this.id = this.$route.params.token;
+    this.id = this.$route.params.tkn;
     // Check if the ID exists in the backend
     setTimeout(() => {
       this.checkIdExists();
     }, 2000);
+ 
   },
   methods: {
     checkIdExists() {
@@ -102,9 +104,9 @@ export default {
     submitForm() {
   if (this.password === this.confirmPassword) {
     // Get the CSRF token from the HTML template
-    const csrfToken = document.querySelector(
-      'input[name="csrfmiddlewaretoken"]'
-    ).value;
+    // const csrfToken = document.querySelector(
+    //   'input[name="csrfmiddlewaretoken"]'
+    // ).value;
     const url = `${import.meta.env.VITE_SERVER_URL}/user_pass/`;
     const data = {
       pw: this.confirmPassword,
@@ -114,7 +116,7 @@ export default {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-CSRFToken": csrfToken,
+        // "X-CSRFToken": csrfToken,
       },
       body: JSON.stringify(data),
     };

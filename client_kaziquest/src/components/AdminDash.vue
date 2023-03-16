@@ -1,4 +1,7 @@
 <template>
+  <!-- <div v-if="!isLoggedin" class="bg-slate-100 flex items-center justify-center min-h-screen">
+    <Login />
+  </div> -->
   <div class="flex h-screen overflow-hidden">
     <!-- Sidebar -->
     <div v-show="isOpen" class="bg-gray-800">
@@ -7,17 +10,53 @@
           <span class="text-xl font-semibold">KaziQuest</span>
         </div>
         <ul class="flex-1 overflow-y-auto">
-          <li  @click="isHome=false, showAddemp=true, showUpdaterole=false, showInventory=false, showLeavedetails=false" class="px-4 py-2 hover:bg-gray-700 cursor-pointer">
+          <li
+            @click="
+              (isHome = false),
+                (showAddemp = true),
+                (showUpdaterole = false),
+                (showInventory = false),
+                (showLeavedetails = false)
+            "
+            class="px-4 py-2 hover:bg-gray-700 cursor-pointer"
+          >
             Add Employee
           </li>
-          <li  @click="isHome=false, showAddemp=false, showUpdaterole=true, showInventory=false, showLeavedetails=false" class="px-4 py-2 hover:bg-gray-700 cursor-pointer">
-         Employee Roles
+          <li
+            @click="
+              (isHome = false),
+                (showAddemp = false),
+                (showUpdaterole = true),
+                (showInventory = false),
+                (showLeavedetails = false)
+            "
+            class="px-4 py-2 hover:bg-gray-700 cursor-pointer"
+          >
+            Employee Roles
           </li>
-          <li @click="isHome=false, showAddemp=false, showUpdaterole=false, showInventory=true, showLeavedetails=false" class="px-4 py-2 hover:bg-gray-700 cursor-pointer">
-          Inventory
+          <li
+            @click="
+              (isHome = false),
+                (showAddemp = false),
+                (showUpdaterole = false),
+                (showInventory = true),
+                (showLeavedetails = false)
+            "
+            class="px-4 py-2 hover:bg-gray-700 cursor-pointer"
+          >
+            Inventory
           </li>
-          <li  @click="isHome=false, showAddemp=false, showUpdaterole=false, showInventory=false, showLeavedetails=true" class="px-4 py-2 hover:bg-gray-700 cursor-pointer">
-           Leave Details
+          <li
+            @click="
+              (isHome = false),
+                (showAddemp = false),
+                (showUpdaterole = false),
+                (showInventory = false),
+                (showLeavedetails = true)
+            "
+            class="px-4 py-2 hover:bg-gray-700 cursor-pointer"
+          >
+            Leave Details
           </li>
         </ul>
       </div>
@@ -87,13 +126,11 @@
         </div>
       </header>
       <main class="px-6 py-4">
-          <div v-if="isHome" class="">
-            admin dashboard
-          </div>
-          <div v-else class="flex flex-col">
+        <div v-if="isHome" class="">admin dashboard</div>
+        <div v-else class="flex flex-col">
           <AddEmployee v-if="showAddemp" />
           <UpdateRole v-if="showUpdaterole" />
-          <Inventory v-if="showInventory"/>
+          <Inventory v-if="showInventory" />
           <LeaveDetails v-if="showLeavedetails" />
         </div>
       </main>
@@ -107,42 +144,43 @@ import AddEmployee from "./AddEmployee.vue";
 import UpdateRole from "./UpdateRole.vue";
 import Inventory from "./Inventory.vue";
 import LeaveDetails from "./LeaveDetails.vue";
+import Login from "./Login.vue";
 
 export default {
-    data() {
-        return {
-            isOpen: true,
-            showLogs: false,
-            showAddemp: false,
-            showUpdaterole: false,
-            showInventory: false,
-            showLeavedetails: false,
-            showUserDropdown: false,
-            isHome: true,
-            username: "John Doe",
-            messages: [],
-            badge: 0,
-        };
-    },
-    created() {
-        // Enable pusher logging - don't include this in production
-        Pusher.logToConsole = true;
-        const pusher = new Pusher(`${import.meta.env.VITE_PUSHER_APP_KEY}`, {
-            cluster: "ap2",
-        });
-        const channel = pusher.subscribe("notify");
-        // Bind a callback function to the pusher:subscription_succeeded event
-        channel.bind("pusher:subscription_succeeded", () => {
-            console.log("Pusher subscription succeeded.");
-        });
-        // Bind a callback function to the notification event
-        channel.bind("notification", (data) => {
-            console.log("Pusher notification received:", data);
-            this.messages.push(`(time) Employee ${data.username} logged in.`);
-            this.badge += 1;
-        });
-    },
-    components: { AddEmployee, UpdateRole, Inventory, LeaveDetails },
+  data() {
+    return {
+      isLoggedin: false,
+      isOpen: true,
+      showLogs: false,
+      showAddemp: false,
+      showUpdaterole: false,
+      showInventory: false,
+      showLeavedetails: false,
+      showUserDropdown: false,
+      isHome: true,
+      username: "John Doe",
+      messages: [],
+      badge: 0,
+    };
+  },
+  created() {
+    Pusher.logToConsole = true;
+    const pusher = new Pusher(`${import.meta.env.VITE_PUSHER_APP_KEY}`, {
+      cluster: "ap2",
+    });
+    const channel = pusher.subscribe("notify");
+    // Bind a callback function to the pusher:subscription_succeeded event
+    channel.bind("pusher:subscription_succeeded", () => {
+      console.log("Pusher subscription succeeded.");
+    });
+    // Bind a callback function to the notification event
+    channel.bind("notification", (data) => {
+      console.log("Pusher notification received:", data);
+      this.messages.push(`(time) Employee ${data.username} logged in.`);
+      this.badge += 1;
+    });
+  },
+  components: { Login, AddEmployee, UpdateRole, Inventory, LeaveDetails },
 };
 </script>
 
