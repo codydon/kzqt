@@ -31,7 +31,7 @@ class Assets(models.Model):
     AssetName = models.CharField(max_length=255)
     EmpId = models.CharField(max_length=255 , null=True)
     Description = models.CharField(max_length=255)
-    Assigned_status = models.BooleanField(default=False)
+    Assigned = models.BooleanField(default=False)
 
 class LeaveDays(models.Model):
     id = models.AutoField(primary_key=True)

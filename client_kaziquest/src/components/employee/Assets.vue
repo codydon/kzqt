@@ -6,14 +6,26 @@
         <tr>
           <th class="border border-gray-400 px-4 py-2">Asset</th>
           <th class="border border-gray-400 px-4 py-2">AssetID</th>
-          <th class="border border-gray-400 px-4 py-2">Date Issued</th>
+          <th class="border border-gray-400 px-4 py-2">Description</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(asset, index) in assets" :key="index" @click="handleAssetClick(asset)">
-          <td class="border border-gray-400 px-4 py-2 cursor-pointer hover:bg-gray-100">{{ asset.name }}</td>
-          <td class="border border-gray-400 px-4 py-2 cursor-pointer hover:bg-gray-100">{{ asset.id }}</td>
-          <td class="border border-gray-400 px-4 py-2 cursor-pointer hover:bg-gray-100">{{ asset.date_issued }}</td>
+        <tr v-for="(asset, index) in assets" :key="index">
+          <td
+            class="border border-gray-400 px-4 py-2 cursor-pointer hover:bg-gray-100"
+          >
+            {{ asset.AssetName }}
+          </td>
+          <td
+            class="border border-gray-400 px-4 py-2 cursor-pointer hover:bg-gray-100"
+          >
+            {{ asset.AssetId }}
+          </td>
+          <td
+            class="border border-gray-400 px-4 py-2 cursor-pointer hover:bg-gray-100"
+          >
+            {{ asset.Description }}
+          </td>
         </tr>
       </tbody>
     </table>
@@ -21,27 +33,55 @@
 </template>
 
 <script>
-import axios from 'axios';
 
 export default {
   data() {
     return {
-      assets: [],
+      assets: {},
+      employee: {},
     };
   },
-  methods: {
-    async fetchAssets() {
-      const response = await axios.get('/api/assets/');
-      this.assets = response.data;
-    },
-    handleAssetClick(asset) {
-      // handle click event on an asset row
-      console.log('Clicked asset:', asset);
-    },
+  created() {
+    this.getauth();
   },
   mounted() {
-    this.fetchAssets();
   },
+  methods: {
+    getauth() {
+      const authToken = localStorage.getItem("tkn");
+
+      fetch(`${import.meta.env.VITE_SERVER_URL}/getauth`, {
+        headers: { "content-type": "application/json" },
+        method: "POST",
+        body: JSON.stringify({
+          tkn: authToken,
+        }),
+      })
+        .then((response) => response.json())
+        .then((response) => {
+          if (response.success === true) {
+            this.isLogin = true;
+            this.employee = response.user;
+            this.fetchAssets()
+          } else {
+            this.$router.push({ name: "Login" });
+          }
+        });
+    },
+    async fetchAssets() {
+      console.log(this.employee);
+      const response = await fetch(
+        `${import.meta.env.VITE_SERVER_URL}/fetch_assets/${
+          this.employee.EmployeeId
+        }/`
+      );
+      const data = await response.json();
+      if (data.success === true) {
+        this.assets = data.assets;
+        console.log("tdvfvekd", this.assets);
+      }
+    },
+  },
+ 
 };
 </script>
-

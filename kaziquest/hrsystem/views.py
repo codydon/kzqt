@@ -13,13 +13,12 @@ from rest_framework.response import Response
 from django.contrib.auth.hashers import check_password
 from rest_framework.exceptions import AuthenticationFailed
 
-
-
 class NotifyViewSet(APIView):
 
     def post(self, request):
         pusher_client.trigger('notify', 'notification', {
             'username': request.data['username'],
+            'type': request.data['type'],
             })
         
         return Response([])
@@ -31,16 +30,32 @@ class AssetsViewSet(viewsets.ModelViewSet):
     authentication_classes = [BasicAuthentication]
     # permission_classes = [IsAuthenticated]
 
+    def fetch_assets(self, request, eid):
+        try:
+            assets = Assets.objects.filter(EmpId=eid).values() # convert QuerySet to list of dictionaries
+            return JsonResponse({'success': True, 'assets': list(assets)}, status=200) # convert QuerySet to list
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+
+    def destroy(self, request, pk):
+        try:
+            asset = Assets.objects.get(AssetId=pk)
+            asset.delete()
+            return JsonResponse({'success': True}, status=200)
+        except Http404:
+            return JsonResponse({'message': 'Asset not found.'}, status=404)
+        except Exception as e:
+            return JsonResponse({'message': str(e)}, status=500)
 
     def add_asset(self, request):
         if request.method == 'POST':
             data = json.loads(request.body)
             try:
-                
-
-                asset_name = data.get('name')
-                asset_id = data.get('id')
-                description = data.get('description')
+                asset_name = data['name']
+                asset_id = data['id']
+                description = data['description']
+               
 
                 # Create a new asset object with the employee object and save it to the database
                 asset = Assets(
@@ -55,7 +70,7 @@ class AssetsViewSet(viewsets.ModelViewSet):
 
             except Exception as e:
                 # If there is an error, return an error response
-                return JsonResponse({'success': False, 'error': str(e)})
+                return JsonResponse({'error': str(e)}, status=500)
 
     def get_assets(self, request):
         if request.method == 'GET':
@@ -65,12 +80,12 @@ class AssetsViewSet(viewsets.ModelViewSet):
             serialized_assets = []
             for asset in assets:
                 serialized_asset = {
-                    'employee_id': asset.EmployeeId,
+                    'employeeId': asset.EmpId,
                     'asset_name': asset.AssetName,
                     'asset_id': asset.AssetId,
                     'description': asset.Description,
-                    'assigned_status': asset.Assigned_status,
-                }
+                    'assigned_status': asset.Assigned
+                    }
                 serialized_assets.append(serialized_asset)
             return JsonResponse({'success': True, 'assets': serialized_assets}, status=200)
         else:
@@ -78,21 +93,8 @@ class AssetsViewSet(viewsets.ModelViewSet):
         
 
 
-    def delete_asset(request, a_id):
-        # Retrieve the asset object from the database using the provided ID
-        asset = get_object_or_404(Assets, AssetId=a_id)
-
-        if request.method == 'POST':
-            # Delete the asset object from the database
-            asset.delete()
-            # Return a success response
-            return JsonResponse({'message': 'Asset deleted successfully.'}, status=204)
-
-        # Return a bad request response if the request method is not POST
-        return JsonResponse({'message': 'Invalid request method.'}, status=400)
 
 
-        
     def update_asset(self, request):
         if request.method == 'POST':
             data = json.loads(request.body)
@@ -113,42 +115,71 @@ class AssetsViewSet(viewsets.ModelViewSet):
         try:
             if request.method == 'POST':
                 data = json.loads(request.body)
-                emp_id= data['employee_id']
+                asset_id= data['asset_id']
                 try:
-                    asset = get_object_or_404(Assets, EmployeeId__EmployeeId=emp_id)
+                    asset = get_object_or_404(Assets, AssetId=asset_id)
                 except Assets.DoesNotExist:
                     return JsonResponse({'resp': 'Asset does not exist'}, status=500)
                 except Http404:
                     return JsonResponse({'resp': 'Asset does not exist'}, status=404)
             
                 
-                asset.EmployeeId = emp_id
+                asset.EmpId = data['employee_id']
+                asset.Assigned = True
                 asset.save()
                 return JsonResponse({'success': True, 'data': data}, status=200)
             else:
                 return JsonResponse({'error': 'Invalid request method'}, status=405)
         except Exception as e:
-                return JsonResponse({'error': e}, status=500)
-
-
-
+                return JsonResponse({'error': str(e) }, status=500)
 
 class EmployeeViewSet(viewsets.ModelViewSet):
     queryset = Employee.objects.all().order_by('EmployeeId')
     serializer_class = EmployeeSerializer
     authentication_classes = [BasicAuthentication]
     # permission_classes = [IsAuthenticated]
-    
+
+    def update_profile(self, request):
+        if request.method == 'POST':
+            try:
+                data = json.loads(request.body)
+                Employee.objects.filter(EmployeeId=data['EmployeeId']).update(
+                    Name=data['Name'],
+                    email=data['email'],
+                    PhoneNumber=data['PhoneNumber'],
+                    DOB=data['DOB'],
+                    KRAPIN=data['KRAPIN'],
+                    IDnumber=data['IDnumber']
+                )
+                return JsonResponse({'success': True})
+            except Exception as e:
+                return JsonResponse({'success': False, 'error': str(e)})
+
+    def change_employee_role(self, request, eid):
+        if request.method == "PUT":
+            data = json.loads(request.body)
+            try:
+                employee = Employee.objects.get(EmployeeId=eid)
+                new_role = data['role']
+                employee.Role = new_role
+                employee.save()
+                response_data = {"success": True}
+            except Employee.DoesNotExist:
+                response_data = {"success": False, "error": "Employee does not exist"}
+            except Exception as e:
+                response_data = {"success": False, "error": str(e)}
+            return JsonResponse(response_data)
+        
     def get_employees(self, request):
         if request.method == 'GET':
-            # Retrieve all assets from the database
-            assets = Employee.objects.all()
+            assets = Employee.objects.exclude(EmployeeId=None)
             # Create a list to store serialized asset objects
             serialized_assets = []
             for asset in assets:
                 serialized_asset = {
                     'employee_id': asset.EmployeeId,
                     'employee_name': asset.Name,
+                    'role': asset.Role,
                     # 'asset_id': asset.AssetId,
                     # 'description': asset.Description,
                     # 'assigned_status': asset.Assigned_status,
@@ -450,6 +481,24 @@ class LeaveDaysViewSet(viewsets.ModelViewSet):
                 EmpId=emp_id,
                 Status="pending"
             )
+            leave.save()
+            return JsonResponse({"success": True}, status=200)
+    
+    def approveRequest(self, request):
+        if request.method == 'PUT':
+            data = json.loads(request.body)
+            leave_id = data['id']
+            status = data['status']
+
+            if not leave_id or not status:
+                return JsonResponse({'error': 'fill all required fields'}, status=400)
+
+            try:
+                leave = LeaveDays.objects.get(id=leave_id)
+            except LeaveDays.DoesNotExist:
+                return JsonResponse({'error': 'Invalid leave ID'}, status=400)
+
+            leave.Status = status
             leave.save()
             return JsonResponse({"success": True}, status=200)
         

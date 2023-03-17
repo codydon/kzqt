@@ -123,6 +123,39 @@
               </div>
             </div>
           </div>
+
+          <div class=" flex">
+                <div class="text-gray-500 text-sm my-auto px-2"> {{ employee.EmployeeId }}</div>
+                <div
+                  class="avatar bg-gray-100 text-center rounded-full py-2 px-4"
+                  @click="showLogout = !showLogout"
+                >
+                  {{ employee.Name[0] }}
+                </div>
+                <div class="relative" v-show="showLogout">
+                  <div
+                    class="absolute right-0 mt-12 bg-slate-200 rounded-lg shadow-xl z-10"
+                  >
+                    <!-- <div
+                      class="text-right cursor-pointer mb-4 rounded-full text-sm text-red-400 hover:bg-gray-300"
+                      @click="showUserDropdown = !showUserDropdown       
+                      "
+                    >
+                      X
+                    </div> -->
+                    <div class="text-center hover:bg-slate-200">
+                      <!-- <p class="hover:bg-slate-300 px-3 mb-2 rounded-full cursor-pointer">profile</p> -->
+                      <p
+                        class="hover:bg-slate-300 px-10 py-2 cursor-pointer rounded"
+                        @click="logout"
+                      >
+                        logout
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
         </div>
       </header>
       <main class="px-6 py-4">
@@ -145,6 +178,7 @@ import UpdateRole from "./UpdateRole.vue";
 import Inventory from "./Inventory.vue";
 import LeaveDetails from "./LeaveDetails.vue";
 import Login from "./Login.vue";
+import Swal from "sweetalert2"
 
 export default {
   data() {
@@ -157,10 +191,12 @@ export default {
       showInventory: false,
       showLeavedetails: false,
       showUserDropdown: false,
+      showLogout: false,
       isHome: true,
       username: "John Doe",
       messages: [],
       badge: 0,
+      employee:{}
     };
   },
   created() {
@@ -178,9 +214,19 @@ export default {
     // Bind a callback function to the notification event
     channel.bind("notification", (data) => {
       console.log("Pusher notification received:", data);
-      this.messages.push(`(time) Employee ${data.username} logged in.`);
-      this.badge += 1;
-    });
+      if(data.type == "login"){
+        this.messages.push(`(time) Employee ${data.username} logged in.`);
+        this.badge += 1;
+      }
+      if(data.type == "updateprofile"){
+        this.messages.push(`(time) Employee ${data.username} updated profile.`);
+        this.badge += 1;
+      }
+      if(data.type == "logout"){
+        this.messages.push(`(time) Employee ${data.username} logged out.`);
+        this.badge += 1;
+      }
+      });
   },
   components: { Login, AddEmployee, UpdateRole, Inventory, LeaveDetails },
   methods:{
@@ -204,6 +250,34 @@ export default {
           else{
             this.$router.push({ name: "Login" });
           }
+        });
+    },
+
+    logout() {
+      const requestOptions = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      };
+      fetch(`${import.meta.env.VITE_SERVER_URL}/logout/`, requestOptions)
+        .then((response) => response.json())
+        .then((response) => {
+          console.log(response);
+          if (response) {
+            this.showUserDropdown = false;
+            this.isLogin = false;
+            localStorage.clear();
+            window.location.replace(`${import.meta.env.VITE_CLIENT_URL}/login`);
+          }
+        })
+        .catch((error) => {
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: error.message,
+          });
         });
     },
   }

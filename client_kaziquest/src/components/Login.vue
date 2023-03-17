@@ -59,6 +59,8 @@ export default {
       pw: ""
     };
   },
+  created() {
+  },
   methods: {
     empLogin() {
       const requestOptions = {
@@ -99,13 +101,14 @@ export default {
         });
     },
     pnotify() {
-      fetch(`${import.meta.env.VITE_SERVER_URL}/notify/`, {
+      fetch(`${import.meta.env.VITE_SERVER_URL}/notify`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           username: this.employeeID,
+          type: "login"
         }),
       });
     },

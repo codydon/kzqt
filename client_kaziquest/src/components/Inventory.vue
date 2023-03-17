@@ -69,7 +69,7 @@
           >
             <td class="py-3 px-6 text-left border">{{ asset.asset_id }}</td>
             <td class="py-3 px-6 text-left border">{{ asset.asset_name }}</td>
-            <td class="py-3 px-6 text-left border">{{ asset.employee_id }}</td>
+            <td class="py-3 px-6 text-left border">{{ asset.employeeId }}</td>
             <td class="py-3 px-6 text-left border">{{ asset.description }}</td>
             <td class="py-3 px-6 text-left border">
               {{ asset.assigned_status }}
@@ -90,7 +90,7 @@
                 </button>
                 <button
                   class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                  @click="showDeleteModal(asset)"
+                  @click="deleteAsset(asset)"
                 >
                   Delete
                 </button>
@@ -100,7 +100,6 @@
         </tbody>
       </table>
     </div>
-
     <div
       v-if="showAssignModal"
       class="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center"
@@ -269,6 +268,7 @@ export default {
       employees: [],
       sortColumn: "id",
       sortDirection: "asc",
+      emp: {},
       searchTerm: "",
       showAddAssetModal: false,
       showEditModal: false,
@@ -278,14 +278,17 @@ export default {
         id: "",
         description: "",
         assigned_status: "",
+        eId: "",
       },
-      selectedEmployee: '',
+      selectedEmployee: "",
       selectedAsset: {},
     };
   },
-  mounted() {
+  created() {
+    this.getauth();
     this.getAssets();
   },
+
   computed: {
     sortedAssets() {
       return this.filteredAssets.sort((a, b) => {
@@ -304,6 +307,27 @@ export default {
     },
   },
   methods: {
+    getauth() {
+      const authToken = localStorage.getItem("tkn");
+
+      fetch(`${import.meta.env.VITE_SERVER_URL}/getauth`, {
+        headers: { "content-type": "application/json" },
+        method: "POST",
+        body: JSON.stringify({
+          tkn: authToken,
+        }),
+      })
+        .then((response) => response.json())
+        .then((response) => {
+          // console.log(response);
+          if (response.success === true) {
+            this.isLogin = true;
+            this.emp = response.user;
+          } else {
+            this.$router.push({ name: "Login" });
+          }
+        });
+    },
     getAssets() {
       fetch(`${import.meta.env.VITE_SERVER_URL}/get_assets/`)
         .then((response) => response.json())
@@ -324,12 +348,9 @@ export default {
         this.sortDirection = "asc";
       }
     },
-    // updateSelectedEmployee(){
-    //   this.selectedEmployee = this.selectedEmployee
-    // }
     assignAsset() {
-      console.log(this.selectedEmployee)
-      this.selectedAsset.employee_id = this.selectedEmployee
+      console.log(this.selectedEmployee);
+      this.selectedAsset.employee_id = this.selectedEmployee;
       const requestOptions = {
         method: "POST",
         headers: {
@@ -339,9 +360,10 @@ export default {
       };
 
       fetch(`${import.meta.env.VITE_SERVER_URL}/assign_asset/`, requestOptions)
+        .then((response) => response.json())
         .then((response) => {
           console.log(response);
-          if ((response.success === true )) {
+          if (response.success === true) {
             this.getAssets();
             this.selectedAsset = {};
             this.showAssignModal = false;
@@ -387,12 +409,7 @@ export default {
       this.selectedAsset = asset;
       this.showEditModal = true;
     },
-    showDeleteModal(asset) {
-      this.selectedAsset = asset;
-      // this.showEditModal = true;
-      // event.preventDefault();
-      this.deleteAsset();
-    },
+
     showAssign(asset) {
       this.selectedAsset = asset;
       this.getEmployees();
@@ -424,18 +441,16 @@ export default {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(this.newAsset),
+        body: JSON.stringify(this.newAsset, this.employee),
       };
 
       fetch(`${import.meta.env.VITE_SERVER_URL}/add_asset/`, requestOptions)
-      .then((response) => response.json())
+        .then((response) => response.json())
         .then((response) => {
           console.log(response);
-          if ((response.success === true)) {
+          if (response.success === true) {
             this.getAssets();
-            this.newAsset.name = "";
-            this.newAsset.id = "";
-            this.newAsset.description = "";
+            this.newAsset = {};
             this.showAddAssetModal = false;
             Swal.fire({
               icon: "success",
@@ -470,7 +485,7 @@ export default {
       fetch(`${import.meta.env.VITE_SERVER_URL}/update_asset/`, requestOptions)
         .then((response) => response.json())
         .then((response) => {
-          if ((response.success === true)) {
+          if (response.success === true) {
             console.log(response.resp);
             this.getAssets();
             this.selectedAsset = {};
@@ -499,51 +514,59 @@ export default {
           });
         });
     },
-    deleteAsset() {
-      const requestOptions = {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(this.selectedAsset),
-      };
+    deleteAsset(asset) {
+      this.selectedAsset = asset;
 
-      fetch(
-        `${import.meta.env.VITE_SERVER_URL}/delete_asset/${
-          this.selectedAsset.asset_id
-        }`,
-        requestOptions
-      )
-        .then((response) => response.json())
-        .then((response) => {
-          if ((response.success = true)) {
-            console.log(response.resp);
-            this.getAssets();
-            this.selectedAsset = {};
-            this.showEditModal = false;
-            this.getAssets();
-            Swal.fire({
-              icon: "success",
-              title: "Success",
-              text: "Asset updated successfully",
+      Swal.fire({
+        title: "Are you sure you want to delete this asset?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, delete it!",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          const requestOptions = {
+            method: "DELETE",
+          };
+          fetch(
+            `${import.meta.env.VITE_SERVER_URL}/delete_asset/${this.selectedAsset.asset_id}/`,
+            requestOptions
+          )
+            .then((response) => response.json())
+            .then((response) => {
+              console.log(response.resp);
+              if (response.success === true) {
+                this.getAssets();
+                this.selectedAsset = {};
+                this.showEditModal = false;
+                this.getAssets();
+                Swal.fire({
+                  icon: "success",
+                  title: "Success",
+                  text: "Asset deleted successfully",
+                });
+              } else {
+                this.selectedAsset = {};
+                this.showEditModal = false;
+                this.getAssets();
+                Swal.fire({
+                  icon: "error",
+                  title: "Error",
+                  text: "Network error",
+                });
+              }
+            })
+            .catch((error) => {
+              this.getAssets();
+              Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: error.message,
+              });
             });
-          } else {
-            this.selectedAsset = {};
-            this.showEditModal = false;
-            Swal.fire({
-              icon: "error",
-              title: "Error",
-              text: "Network error",
-            });
-          }
-        })
-        .catch((error) => {
-          Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: error.message,
-          });
-        });
+        }
+      });
     },
   },
 };

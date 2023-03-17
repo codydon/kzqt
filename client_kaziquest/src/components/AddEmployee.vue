@@ -4,11 +4,7 @@
     <form
       class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 w-full max-w-md"
     >
-      <input
-        type="hidden"
-        name="csrfmiddlewaretoken"
-        :value="csrfToken"
-      />
+      <input type="hidden" name="csrfmiddlewaretoken" :value="csrfToken" />
       <div class="mb-4">
         <label class="block text-gray-700 text-sm font-bold mb-2" for="name">
           Name
@@ -56,14 +52,15 @@
   </div>
 </template>
 <script>
+import Swal from "sweetalert2";
 
 export default {
   data() {
     return {
       name: "",
       email: "",
-      employee_id:'',
-      verification_token:'',
+      employee_id: "",
+      verification_token: "",
       isNameFocused: false,
       isEmailFocused: false,
       csrfToken: null,
@@ -94,11 +91,23 @@ export default {
 
       fetch(url, options)
         .then((response) => response.json())
-        .then((data) => {
-          // console.log("RESPONSE", data);
-          // Clear the form
-          this.name = "";
-          this.email = "";
+        .then((response) => {
+          if (response.success === true) {
+            // console.log("RESPONSE", data);
+            // Clear the form
+            this.name = "";
+            this.email = "";
+
+            // Show success message
+            Swal.fire({
+              title: "Success!",
+              text: "Employee created successfully.",
+              icon: "success",
+              timer: 1500, // 1.5 seconds
+              timerProgressBar: true,
+              showConfirmButton: false,
+            });
+          }
         })
         .catch((error) => {
           console.error("POST ERROR", error);

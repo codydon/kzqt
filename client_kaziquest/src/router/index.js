@@ -19,7 +19,7 @@ const routes = [
   // { path: "/updaterole", name: "UpdateRole", component: UpdateRole },
   // { path: "/inventory", name: "Inventory", component: Inventory },
   // { path: "/leavedetails", name: "LeaveDetails", component: LeaveDetails },
-  { path: "/register", name: "register", component: Register },
+  { path: "/register", name: "Register", component: Register },
   { path: "/login", name: "Login", component: Login },
   // { path: "/admin", name: "AdminDash", component: AdminDash },
   //

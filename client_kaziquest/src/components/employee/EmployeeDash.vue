@@ -150,7 +150,18 @@ export default {
           }
         });
     },
-
+    pnotify() {
+      fetch(`${import.meta.env.VITE_SERVER_URL}/notify`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: this.employee.EmployeeId,
+          type:"logout"
+        }),
+      });
+    },
     logout() {
       const requestOptions = {
         method: "POST",
@@ -163,10 +174,12 @@ export default {
         .then((response) => response.json())
         .then((response) => {
           console.log(response);
-          if (response) {
+          if (response.success === true) {
+            this.pnotify()
             this.showUserDropdown = false;
             this.isLogin = false;
             localStorage.clear();
+            // window.location.replace(`${import.meta.env.VITE_CLIENT_URL}/login`);
             this.$router.push({ name: "Login" });
           }
         })
