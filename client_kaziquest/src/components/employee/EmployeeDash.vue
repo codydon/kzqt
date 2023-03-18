@@ -179,7 +179,6 @@ export default {
             this.showUserDropdown = false;
             this.isLogin = false;
             localStorage.clear();
-            // window.location.replace(`${import.meta.env.VITE_CLIENT_URL}/login`);
             this.$router.push({ name: "Login" });
           }
         })

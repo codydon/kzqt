@@ -14,7 +14,6 @@ import Register from './components/Register.vue';
 import Login from './components/Login.vue';
 import EmployeeDash from './components/employee/EmployeeDash.vue';
 import VerifyEmail from './components/VerifyEmail.vue';
-import { useRouter } from 'vue-router';
 
 export default {
   components: {
@@ -27,7 +26,6 @@ export default {
   setup() {
     const verifyEmailClicked = ref(0);
 
-    const router = useRouter();
     const isLoggedIn = ref(false);
 
     if (localStorage.getItem('auth')) {

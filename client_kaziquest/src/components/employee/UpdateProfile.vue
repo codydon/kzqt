@@ -101,6 +101,18 @@ export default {
           }
         });
     },
+    pnotify() {
+      fetch(`${import.meta.env.VITE_SERVER_URL}/notify`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: this.employee.EmployeeId,
+          type:"updateprofile"
+        }),
+      });
+    },
     async handleSubmit() {
       try {
         console.log(this.employee);
@@ -118,6 +130,7 @@ export default {
         console.log(data);
         if (data.success === true) {
           this.getauth;
+          this.pnotify();
           Swal.fire({
             icon: "success",
             title: "Updated successfully",
