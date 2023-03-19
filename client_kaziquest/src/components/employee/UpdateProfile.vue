@@ -108,8 +108,8 @@ export default {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          username: this.employee.EmployeeId,
-          type:"updateprofile"
+          EmpId: this.employee.EmployeeId,
+          message: "At " + new Date().toLocaleString() + ", " + this.employee.EmployeeId + " updated profile"
         }),
       });
     },

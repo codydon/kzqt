@@ -1,8 +1,8 @@
 <template>
-  <!-- <div v-if="!isLoggedin" class="bg-slate-100 flex items-center justify-center min-h-screen">
+  <div v-if="!isLoggedin">
     <Login />
-  </div> -->
-  <div class="flex h-screen overflow-hidden">
+  </div>
+  <div v-if="isLoggedin" class="flex h-screen overflow-hidden">
     <!-- Sidebar -->
     <div v-show="isOpen" class="bg-gray-800">
       <div class="text-white flex-none flex flex-col">
@@ -101,22 +101,21 @@
 
             <div class="relative" v-show="showUserDropdown">
               <div
-                class="absolute right-0 mt-2 p-4 w-72 bg-slate-200 rounded-lg shadow-xl z-10 overflow-y-scroll"
+                class="absolute right-0 mt-12 p-4 w-72 bg-slate-200 rounded-lg shadow-xl z-10 overflow-y-scroll max-h-96"
               >
+              <div class="text-right px-4 pb-2 text-red-600 font-extrabold cursor-pointer" @click="showUserDropdown = !showUserDropdown">
+                X
+              </div>
                 <div
-                  class="text-center cursor-pointer mb-4 rounded-full p-2 text-sm text-red-400 bg-gray-300"
-                  @click="
-                    ($event) => {
-                      (showUserDropdown = !showUserDropdown), (badge = 0);
-                    }
-                  "
+                  class="text-center cursor-pointer mb-4 rounded-full p-2 text-sm text-blue-500 bg-gray-300"
+                  @click="update_read"
                 >
-                  close
+                  mark as read
                 </div>
                 <div
                   v-for="message in messages"
                   :key="message"
-                  class="text-center hover:bg-slate-300"
+                  class="text-center hover:bg-slate-300 mb-4 p-2 rounded"
                 >
                   {{ message }}
                 </div>
@@ -124,38 +123,39 @@
             </div>
           </div>
 
-          <div class=" flex">
-                <div class="text-gray-500 text-sm my-auto px-2"> {{ employee.EmployeeId }}</div>
-                <div
-                  class="avatar bg-gray-100 text-center rounded-full py-2 px-4"
-                  @click="showLogout = !showLogout"
-                >
-                  {{ employee.Name[0] }}
-                </div>
-                <div class="relative" v-show="showLogout">
-                  <div
-                    class="absolute right-0 mt-12 bg-slate-200 rounded-lg shadow-xl z-10"
-                  >
-                    <!-- <div
+          <div class="flex">
+            <div class="text-gray-500 text-sm my-auto px-2">
+              {{ employee.EmployeeId }}
+            </div>
+            <div
+              class="avatar bg-gray-100 text-center rounded-full py-2 px-4"
+              @click="showLogout = !showLogout"
+            >
+              {{ employee.Name[0] }}
+            </div>
+            <div class="relative" v-show="showLogout">
+              <div
+                class="absolute right-0 mt-12 bg-slate-200 rounded-lg shadow-xl z-10"
+              >
+                <!-- <div
                       class="text-right cursor-pointer mb-4 rounded-full text-sm text-red-400 hover:bg-gray-300"
                       @click="showUserDropdown = !showUserDropdown       
                       "
                     >
                       X
                     </div> -->
-                    <div class="text-center hover:bg-slate-200">
-                      <!-- <p class="hover:bg-slate-300 px-3 mb-2 rounded-full cursor-pointer">profile</p> -->
-                      <p
-                        class="hover:bg-slate-300 px-10 py-2 cursor-pointer rounded"
-                        @click="logout"
-                      >
-                        logout
-                      </p>
-                    </div>
-                  </div>
+                <div class="text-center hover:bg-slate-200">
+                  <!-- <p class="hover:bg-slate-300 px-3 mb-2 rounded-full cursor-pointer">profile</p> -->
+                  <p
+                    class="hover:bg-slate-300 px-10 py-2 cursor-pointer rounded"
+                    @click="logout"
+                  >
+                    logout
+                  </p>
                 </div>
               </div>
-
+            </div>
+          </div>
         </div>
       </header>
       <main class="px-6 py-4">
@@ -178,7 +178,7 @@ import UpdateRole from "./UpdateRole.vue";
 import Inventory from "./Inventory.vue";
 import LeaveDetails from "./LeaveDetails.vue";
 import Login from "./Login.vue";
-import Swal from "sweetalert2"
+import Swal from "sweetalert2";
 
 export default {
   data() {
@@ -196,11 +196,11 @@ export default {
       username: "John Doe",
       messages: [],
       badge: 0,
-      employee:{}
+      employee: {},
     };
   },
   created() {
-    this.getauth()
+    this.getauth();
 
     Pusher.logToConsole = true;
     const pusher = new Pusher(`${import.meta.env.VITE_PUSHER_APP_KEY}`, {
@@ -214,22 +214,14 @@ export default {
     // Bind a callback function to the notification event
     channel.bind("notification", (data) => {
       console.log("Pusher notification received:", data);
-      if(data.type == "login"){
-        this.messages.push(`(time) Employee ${data.username} logged in.`);
+      if (data) {
+        this.messages.unshift(data.message);
         this.badge += 1;
       }
-      if(data.type == "updateprofile"){
-        this.messages.push(`(time) Employee ${data.username} updated profile.`);
-        this.badge += 1;
-      }
-      if(data.type == "logout"){
-        this.messages.push(`(time) Employee ${data.username} logged out.`);
-        this.badge += 1;
-      }
-      });
+    });
   },
   components: { Login, AddEmployee, UpdateRole, Inventory, LeaveDetails },
-  methods:{
+  methods: {
     getauth() {
       const authToken = localStorage.getItem("tkn");
 
@@ -243,16 +235,42 @@ export default {
         .then((response) => response.json())
         .then((response) => {
           // console.log(response);
-          if (response.success === true && response.user.Role === 'admin') {
-            this.isLogin = true;
+          if (response.success === true && response.user.Role === "admin") {
+            this.isLoggedin = true;
             this.employee = response.user;
-          }
-          else{
-            this.$router.push({ name: "Login" });
+            this.get_notifications();
+          } else {
+            this.isLoggedin = false;
           }
         });
     },
-
+    get_notifications() {
+      fetch(`${import.meta.env.VITE_SERVER_URL}/get_notifications`)
+        .then((response) => response.json())
+        .then((response) => {
+          // console.log(response);
+          if (response.success === true) {
+            for (let n of response.notifications) {
+              this.messages.push(n);
+              this.badge += 1;
+            }
+          }
+        });
+    },
+    update_read(){
+      this.badge = 0;
+      fetch(`${import.meta.env.VITE_SERVER_URL}/update_read`, {
+        headers: { "content-type": "application/json" },
+        method: "PUT",
+      })
+      .then((response) => response.json())
+      .then((response) => {
+          // console.log(response);
+          if (response.success === true) {
+            this.get_notifications();
+          }
+        });
+    },
     logout() {
       const requestOptions = {
         method: "POST",
@@ -265,11 +283,26 @@ export default {
         .then((response) => response.json())
         .then((response) => {
           console.log(response);
-          if (response) {
+          if (response.success === true) {
             this.showUserDropdown = false;
-            this.isLogin = false;
+            this.isLoggedin = false;
             localStorage.clear();
-            window.location.replace(`${import.meta.env.VITE_CLIENT_URL}/login`);
+            // window.location.replace(`${import.meta.env.VITE_CLIENT_URL}/login`);
+            fetch(`${import.meta.env.VITE_SERVER_URL}/notify`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                EmpId: this.employee.EmployeeId,
+                message:
+                  "At " +
+                  new Date().toLocaleString() +
+                  ", " +
+                  this.employee.EmployeeId +
+                  " logged out",
+              }),
+            });
           }
         })
         .catch((error) => {
@@ -280,9 +313,6 @@ export default {
           });
         });
     },
-  }
+  },
 };
 </script>
-
-
-

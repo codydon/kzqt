@@ -1,5 +1,5 @@
 <template>
-  <div class="">
+  <div class="bg-slate-100 flex items-center justify-center min-h-screen">
     <div class="flex flex-col items-center justify-centerbg-gray-100">
       <div class="bg-white rounded-lg shadow-md p-8">
         <h3
@@ -107,8 +107,8 @@ export default {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          username: this.employeeID,
-          type: "login"
+          EmpId: this.employeeID,
+          message: "At " + new Date().toLocaleString() + ", " + this.employeeID + " logged in"
         }),
       });
     },

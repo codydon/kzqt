@@ -41,6 +41,13 @@ class LeaveDays(models.Model):
     EmpId = models.CharField(max_length=255)
     Status = models.CharField(max_length=255, default='pending')
 
+class Notification(models.Model):
+    id = models.AutoField(primary_key=True)
+    EmpId = models.CharField(max_length=255)
+    message = models.CharField(max_length=255)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
 
 
 

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Employee, Assets, LeaveDays
+from .models import Employee, Assets, LeaveDays, Notification
 
 
 class EmployeeSerializer(serializers.ModelSerializer):
@@ -29,4 +29,10 @@ class AssetSerializer(serializers.ModelSerializer):
 class LeaveSerializer(serializers.ModelSerializer):
     class Meta:
         model = LeaveDays
+        fields = '__all__'
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        # fields = ('id', 'EmpId', 'message', 'timestamp')
         fields = '__all__'

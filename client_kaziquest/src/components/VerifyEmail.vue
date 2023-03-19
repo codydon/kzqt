@@ -56,7 +56,7 @@ export default {
   name: "VerifyEmail",
   data() {
     return {
-      id: null,
+      t: null,
       exists: false,
       error: false,
       loading: true,
@@ -65,10 +65,6 @@ export default {
     };
   },
   mounted() {
-    console.log(this.$route.params)
-    // Get the token parameter from the route
-    this.id = this.$route.params.tkn;
-    // Check if the ID exists in the backend
     setTimeout(() => {
       this.checkIdExists();
     }, 2000);
@@ -76,8 +72,11 @@ export default {
   },
   methods: {
     checkIdExists() {
+      console.log("Checking", this.t)
       try {
-        fetch(`${import.meta.env.VITE_SERVER_URL}/verify_email/${this.id}/`)
+        fetch(`${import.meta.env.VITE_SERVER_URL}/verify_email/` + this.$route.params.tkn, {
+          method: "POST",
+        })
           .then((response) => response.json())
           .then((response) => {
             if (response.resp === 1) {
@@ -116,7 +115,6 @@ export default {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        // "X-CSRFToken": csrfToken,
       },
       body: JSON.stringify(data),
     };

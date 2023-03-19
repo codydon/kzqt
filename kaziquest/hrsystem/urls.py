@@ -15,7 +15,7 @@ urlpatterns = [
     path('reg_admin/', EmployeeViewSet.as_view({'post': 'reg_admin'}), name='reg_admin'),
     path('d/', EmployeeViewSet.as_view({'post': 'dummy'}), name='hr-detail'),
     path('getauth', EmployeeViewSet.as_view({'post': 'getauth_user'}), name='getauth'),
-    path('verify_email/<str:token>/', EmployeeViewSet.as_view({'get': 'verify_email'}), name='verify_email'),
+    path('verify_email/<str:token>', EmployeeViewSet.as_view({'post': 'verify_email'}), name='verify_email'),
     path('user_pass/', EmployeeViewSet.as_view({'post': 'user_pass'}), name='user_pass'),
     path('change_employee_role/<str:eid>/', EmployeeViewSet.as_view({'put': 'change_employee_role'}), name='change_employee_role'),
     # path('hr/<str:pk>/delete/', EmployeeViewSet.as_view({'delete': 'destroy'}), name='hr-delete'),
@@ -31,7 +31,9 @@ urlpatterns = [
     path('getRequests/', LeaveDaysViewSet.as_view({'get': 'getRequests'}), name='getRequests'),
     path('approveRequest/', LeaveDaysViewSet.as_view({'put': 'approveRequest'}), name='approveRequest'),
     # 
-    path('notify', NotifyViewSet.as_view()),
+    path('notify', NotifyViewSet.as_view({'post': 'post'}) , name='notify'),
+    path('get_notifications', NotifyViewSet.as_view({'get': 'get_notifications'}) , name='get_notifications'),
+    path('update_read', NotifyViewSet.as_view({'put': 'update_read'}) , name='update_read'),
 
 ]
 

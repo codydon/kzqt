@@ -6,22 +6,54 @@ import json, jwt, datetime
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.hashers import make_password
-from .models import Employee, Assets, LeaveDays
-from .serializers import AssetSerializer, EmployeeSerializer, LeaveSerializer
+from .models import Employee, Assets, LeaveDays, Notification
+from .serializers import AssetSerializer, EmployeeSerializer, LeaveSerializer, NotificationSerializer
 from .pusher import pusher_client
 from rest_framework.response import Response
 from django.contrib.auth.hashers import check_password
 from rest_framework.exceptions import AuthenticationFailed
 
-class NotifyViewSet(APIView):
+class NotifyViewSet(viewsets.ModelViewSet):
+    queryset = Notification.objects.all().order_by('id')
+    serializer_class = NotificationSerializer
+    authentication_classes = [BasicAuthentication]
+
 
     def post(self, request):
+        message = request.data['message']
+        EmpId = request.data['EmpId']
+        
+        # create a new Notification instance
+        notification = Notification(EmpId=EmpId, message=message)
+        notification.save()
+
         pusher_client.trigger('notify', 'notification', {
-            'username': request.data['username'],
-            'type': request.data['type'],
+            'message': request.data['message'],
             })
         
         return Response([])
+    
+    def get_notifications(self, request):
+        try:
+            # Retrieve unread notifications
+            notifications = Notification.objects.filter(is_read=False).order_by('-timestamp')
+
+            # Retrieve the message field for each notification
+            messages = [n.message for n in notifications]
+
+            # Update the notifications to mark them as read
+            notifications.update(is_read=True)
+
+            # Return a JSON response with the list of messages
+            return JsonResponse({"success": True, "notifications": messages})
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+        
+    def update_read(self, request):
+        notifications = Notification.objects.filter(is_read=False)
+        notifications.update(is_read=True)
+        return JsonResponse({'success': True})
 
 
 class AssetsViewSet(viewsets.ModelViewSet):
@@ -360,6 +392,36 @@ class EmployeeViewSet(viewsets.ModelViewSet):
                     employee.Verification_token = 'verified'
                     employee.Email_verified = True
                     employee.save()
+
+                    #    send mail
+                    try:
+                        subject = "Kaziquest Staff Number"
+                        content = """
+                        <html>
+                        <head>
+                        <style>
+                        a {
+                            color: #008080;
+                            font-size: 30px;
+                        }
+                        p {
+                            color: black;
+                        }
+                        </style>
+                        </head>
+                        <body>
+                        <h3>Click on this link to verify your email</h3>
+                        <h4>
+                            <p> Your kaziquest staff number is : """+empId+"""
+                            </p>
+                        </h4>
+                        </body>
+                        </html>
+                        """
+                        self.send_email(subject, content,  employee.email)
+                    except Exception as e:
+                        return JsonResponse({'error': e})
+            
 
                     return JsonResponse({'resp': 1, 'success': 'success'}, status=200)
     

@@ -1,5 +1,8 @@
 <template>
-  <div class="flex h-screen overflow-hidden">
+  <div v-if="!isLogin" class="">
+    <Login />
+  </div>
+  <div v-if="isLogin" class="flex h-screen overflow-hidden">
     <!-- Sidebar -->
     <div v-show="isOpen" class="bg-gray-800">
       <div class="text-white flex-none flex flex-col">
@@ -54,7 +57,9 @@
           </button>
           <div class="flex">
             <div class="relative flex">
-              <div class="text-gray-500 text-sm my-auto px-2"> {{ employee.EmployeeId }}</div>
+              <div class="text-gray-500 text-sm my-auto px-2">
+                {{ employee.EmployeeId }}
+              </div>
               <div
                 class="avatar bg-gray-100 text-center rounded-full py-2 px-4"
                 @click="showUserDropdown = !showUserDropdown"
@@ -101,20 +106,19 @@
 import UpdateProfile from "./UpdateProfile.vue";
 import RequestLeave from "./RequestLeave.vue";
 import Assets from "./Assets.vue";
+import Login from "../Login.vue";
 import Swal from "sweetalert2";
 
 export default {
-  name:'EmployeeDash',
+  name: "EmployeeDash",
   data() {
     return {
       isOpen: true,
       isShow: 1,
-      isAdmin: false,
       isLogin: false,
       showUserDropdown: false,
-      employee: {
-      },
-      f:1
+      employee: {},
+      f: 1,
     };
   },
 
@@ -122,6 +126,7 @@ export default {
     UpdateProfile,
     RequestLeave,
     Assets,
+    Login,
   },
   mounted() {},
   created() {
@@ -143,9 +148,8 @@ export default {
           if (response.success === true) {
             this.isLogin = true;
             this.employee = response.user;
-          }
-          else{
-            this.$router.push({ name: "Login" });
+          } else {
+            this.isLogin = false;
           }
         });
     },
@@ -156,8 +160,8 @@ export default {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          username: this.employee.EmployeeId,
-          type:"logout"
+          EmpId: this.employee.EmployeeId,
+          message: "At " + new Date().toLocaleString() + ", " + this.employee.EmployeeId + " logged out",
         }),
       });
     },
@@ -174,11 +178,11 @@ export default {
         .then((response) => {
           console.log(response);
           if (response.success === true) {
-            this.pnotify()
+            this.pnotify();
             this.showUserDropdown = false;
             this.isLogin = false;
             localStorage.clear();
-            this.$router.push({ name: "Login" });
+            // this.$router.push({ name: "Login" });
           }
         })
         .catch((error) => {

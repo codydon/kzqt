@@ -4,7 +4,6 @@
     <EmployeeDash v-if="$route.path === '/employee'" />
     <Register v-if="$route.path === '/register'" />
     <Login v-if="$route.path === '/login'" />
-    <!-- <router-view></router-view> -->
 </template>
 
 <script>
