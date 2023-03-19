@@ -12,6 +12,7 @@ from .pusher import pusher_client
 from rest_framework.response import Response
 from django.contrib.auth.hashers import check_password
 from rest_framework.exceptions import AuthenticationFailed
+from django.db import transaction
 
 class NotifyViewSet(viewsets.ModelViewSet):
     queryset = Notification.objects.all().order_by('id')
@@ -49,7 +50,9 @@ class NotifyViewSet(viewsets.ModelViewSet):
 
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
-        
+
+   
+
     def update_read(self, request):
         notifications = Notification.objects.filter(is_read=False)
         notifications.update(is_read=True)
