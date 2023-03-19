@@ -111,6 +111,16 @@ export default {
         })
         .catch((error) => {
           console.error("POST ERROR", error);
+          this.name = "";
+          this.email = "";
+          Swal.fire({
+            title: "Oops...",
+            text: "Email already exists",
+            icon: "error",
+            timer: 1500, // 1.5 seconds
+            timerProgressBar: true,
+            showConfirmButton: false,
+          });
         });
     },
   },

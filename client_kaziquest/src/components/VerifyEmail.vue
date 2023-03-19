@@ -52,6 +52,8 @@
 </template>
 
 <script>
+import Swal from 'sweetalert2'
+
 export default {
   name: "VerifyEmail",
   data() {
@@ -109,7 +111,7 @@ export default {
     const url = `${import.meta.env.VITE_SERVER_URL}/user_pass/`;
     const data = {
       pw: this.confirmPassword,
-      token: this.id,
+      token: this.$route.params.tkn,
     };
     const options = {
       method: "POST",
@@ -124,9 +126,14 @@ export default {
       .then((response) => {
         // Handle the server response
         if (response.resp === 1) {
-          console.log("account created");
           //
-          this.$router.push('/employee')
+          this.$router.push('/login')
+          Swal.fire({
+              title: "Account created!",
+              text: "Check your email for your staff ID",
+              icon: "success",
+              showConfirmButton: true,
+            });
         } else {
           console.log("a/c creation failed", response);
         }
