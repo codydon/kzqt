@@ -1,0 +1,61 @@
+1. How long did you spend on the coding test? What would you add to your
+solution if you had more time? If you didn't spend much time on the coding
+test then use this as an opportunity to explain what you would add.
+
+I took 8 days to work on the coding test. I would add a functionality where the admin is able to import assets, employees by use of a csv , an export functionality for the assets and employees , i would aldo add a chat page where by an employee can chat with the admin so that some things can be done faster.
+
+2. What was the most useful feature that was added to the latest version of
+Django? Please include a snippet of code that shows how you've used it.
+
+
+3. How would you track down a performance issue in production? Have you ever
+had to do this?
+
+Identify the problem.
+Monitor system resources.
+Review application logs.
+Analyze database queries.
+Use profiling tools.
+Test different scenarios.
+Optimize the code.
+Test and monitor
+
+4. How did you fetch data from the Django backend and display it in Vue?
+Create a Django view that returns the data in JSON format. This view should use Django's JsonResponse class to convert the data to JSON and return it to the frontend.
+
+In Vue, use the built in fetch or install tje axios library to make an HTTP request to the Django view.
+
+When the response is received, parse the JSON data to convert the JSON data into a JavaScript object that you can use in your Vue component.
+
+Store the data in a Vue component data property. This will make the data available to the component's template.
+
+Display the data in the template using Vue's data binding syntax. For example, you could use v-for to loop over an array of items and display them in a list.
+
+5. Please describe yourself using JSON.
+
+{
+    "name": "Donald Onserio Nyabuto",
+    "description": "An enthusiastic Full Stack developer passionate about technology particularly software development"
+    "technologies": [
+        "Vue.js",
+        "React",
+        "Next.js",
+        "Laravel",
+        "Django",
+        "Tailwind CSS"
+    ],
+    "hobbies": [
+        "Gaming",
+        "Hiking",
+        "Travelling"
+    ],
+    "interests": [
+        "Technology",
+        "Software development",
+        "Artificial intelligence",
+        "Data science"
+    ],
+    
+}
+
+

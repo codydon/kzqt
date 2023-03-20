@@ -12,7 +12,6 @@ from .pusher import pusher_client
 from rest_framework.response import Response
 from django.contrib.auth.hashers import check_password
 from rest_framework.exceptions import AuthenticationFailed
-from django.db import transaction
 
 class NotifyViewSet(viewsets.ModelViewSet):
     queryset = Notification.objects.all().order_by('id')
@@ -24,7 +23,6 @@ class NotifyViewSet(viewsets.ModelViewSet):
         message = request.data['message']
         EmpId = request.data['EmpId']
         
-        # create a new Notification instance
         notification = Notification(EmpId=EmpId, message=message)
         notification.save()
 
@@ -36,16 +34,12 @@ class NotifyViewSet(viewsets.ModelViewSet):
     
     def get_notifications(self, request):
         try:
-            # Retrieve unread notifications
             notifications = Notification.objects.filter(is_read=False).order_by('-timestamp')
 
-            # Retrieve the message field for each notification
             messages = [n.message for n in notifications]
 
-            # Update the notifications to mark them as read
             notifications.update(is_read=True)
 
-            # Return a JSON response with the list of messages
             return JsonResponse({"success": True, "notifications": messages})
 
         except Exception as e:
@@ -593,7 +587,6 @@ class EmailSender:
         self.subject = subject
         self.message = message
         self.recipient_list = recipient_list
-        # self.email_from = os.environ.get('EMAIL_HOST_USER')
         self.email_from = "dev45cody@gmail.com"
         self.email_password = "#codyDon45"
 
